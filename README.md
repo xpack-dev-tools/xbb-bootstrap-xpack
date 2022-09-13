@@ -1,2 +1,4 @@
 # xbb-bootstrap-xpack
-A binary xPack with tools to bootstrap XBB
+
+This project does not use the `master` branch, please
+switch to the `xpack` branch to get the project files.
