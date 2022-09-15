@@ -758,7 +758,11 @@ function build_pkg_config()
           config_options+=("--target=${TARGET}")
 
           config_options+=("--with-internal-glib")
-          config_options+=("--with-pc-path=\"\"")
+          config_options+=("--with-pc-path=")
+
+          # On Intel Linux
+          # gconvert.c:61:2: error: #error GNU libiconv not in use but included iconv.h is from libiconv
+          config_options+=("--with-libiconv=yes")
 
           config_options+=("--disable-debug")
           config_options+=("--disable-host-tool")
