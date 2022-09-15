@@ -4091,7 +4091,8 @@ function build_flex()
 
       xbb_activate_installed_dev
 
-      CPPFLAGS="${XBB_CPPFLAGS}"
+      # make[2]: *** [Makefile:1834: stage1scan.c] Segmentation fault (core dumped)
+      CPPFLAGS="${XBB_CPPFLAGS} -D_GNU_SOURCE"
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
