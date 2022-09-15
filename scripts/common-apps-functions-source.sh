@@ -1438,7 +1438,8 @@ function build_guile()
 
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
-        export LD_LIBRARY_PATH="${XBB_LIBRARY_PATH}:${BUILD_FOLDER_PATH}/${guile_folder_name}/libguile/.libs"
+        # export LD_LIBRARY_PATH="${XBB_LIBRARY_PATH}:${BUILD_FOLDER_PATH}/${guile_folder_name}/libguile/.libs"
+        export LD_LIBRARY_PATH="${BUILD_FOLDER_PATH}/${guile_folder_name}/libguile/.libs"
       fi
 
       export CPPFLAGS
@@ -1621,7 +1622,8 @@ function build_autogen()
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         # To find libopts.so during build.
-        export LD_LIBRARY_PATH="${XBB_LIBRARY_PATH}:${BUILD_FOLDER_PATH}/${autogen_folder_name}/autoopts/.libs"
+        # export LD_LIBRARY_PATH="${XBB_LIBRARY_PATH}:${BUILD_FOLDER_PATH}/${autogen_folder_name}/autoopts/.libs"
+        export LD_LIBRARY_PATH="${BUILD_FOLDER_PATH}/${autogen_folder_name}/autoopts/.libs"
       fi
 
       export CPPFLAGS
@@ -4281,7 +4283,7 @@ function build_perl()
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         # Required to pick libcrypt and libssp from bootstrap.
-        export LD_LIBRARY_PATH="${XBB_LIBRARY_PATH}"
+        : # export LD_LIBRARY_PATH="${XBB_LIBRARY_PATH}"
       fi
 
       export CPPFLAGS
@@ -4412,7 +4414,7 @@ function test_perl()
       # /opt/xbb/bin/perl: error while loading shared libraries: libssp.so.0: cannot open shared object file: No such file or directory
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
-        export LD_LIBRARY_PATH="${XBB_LIBRARY_PATH}"
+        : # export LD_LIBRARY_PATH="${XBB_LIBRARY_PATH}"
       fi
 
       run_app "${TEST_PATH}/bin/perl" --version
