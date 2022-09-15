@@ -1,0 +1,110 @@
+{
+  "name": "@xpack-dev-tools/xbb-bootstrap",
+  "version": "4.0.0",
+  "description": "A binary xPack with the XBB Bootstrap executables",
+  "main": "",
+  "scripts": {
+    "npm-install": "npm install",
+    "pack": "npm pack",
+    "version-patch": "npm version patch",
+    "version-minor": "npm version minor",
+    "postversion": "git push origin --all && git push origin --tags",
+    "git-log": "git log --pretty='%cd * %h %s' --date=short",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "liquidjs": "liquidjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xpack-dev-tools/xbb-bootstrap-xpack.git/"
+  },
+  "bugs": {
+    "url": "https://github.com/xpack-dev-tools/xbb-bootstrap-xpack/issues/"
+  },
+  "homepage": "https://github.com/xpack-dev-tools/xbb-bootstrap-xpack#readme",
+  "keywords": [
+    "xpack",
+    "xbb"
+  ],
+  "author": {
+    "name": "Liviu Ionescu",
+    "email": "ilg@livius.net",
+    "url": "https://github.com/ilg-ul/"
+  },
+  "license": "MIT",
+  "xpack": {
+    "minimumXpmRequired": "0.10.2",
+    "binaries": {
+      "destination": "./.content",
+      "baseUrl": "https://github.com/xpack-dev-tools/xbb-bootstrap-xpack/releases/download/v0.11.0-5",
+      "skip": 1,
+      "platforms": {
+        "darwin-arm64": {
+          "fileName": "xpack-xbb-bootstrap-4.0.0-darwin-arm64.tar.gz",
+          "sha256": "49ebc4bfbeb191dcb29f0a3ff03e2d4a1b9588b68093dc0159beeff6ab2a22be"
+        },
+        "darwin-x64": {
+          "fileName": "xpack-xbb-bootstrap-4.0.0-darwin-x64.tar.gz",
+          "sha256": "df33f2c46804031f895f5c83f984c6b5e05084770e0fe8feb034d91552861301"
+        },
+        "linux-arm64": {
+          "fileName": "xpack-xbb-bootstrap-4.0.0-linux-arm64.tar.gz",
+          "sha256": "bf8c128d8febc22108be3e75f16250054b636c92de2fd5a67d742cb58092a0fd"
+        },
+        "linux-arm": {
+          "fileName": "xpack-xbb-bootstrap-4.0.0-linux-arm.tar.gz",
+          "sha256": "91d7076b3d078b91d0390996657539dcbb7794deaf8b1eec12928e395981b499"
+        },
+        "linux-x64": {
+          "fileName": "xpack-xbb-bootstrap-4.0.0-linux-x64.tar.gz",
+          "sha256": "19403370891605e1994e1eceb5e0c442f8c6fbc60b026851a6e257d524ecd6d1"
+        }
+      }
+    },
+    "bin": {
+      "xbb-bootstrap": "./.content/bin/xbb-bootstrap"
+    },
+    "properties": {
+      "appName": "XBB Bootstrap",
+      "appLCName": "xbb-bootstrap",
+      "platforms": "linux-x64,linux-arm64,linux-arm,darwin-x64,darwin-arm64",
+      "LIQUIDJS": "liquidjs '{ \"APP_NAME\": \"{{ properties.appName }}\", \"APP_LC_NAME\": \"{{ properties.appLCName }}\", \"platforms\": \"{{ properties.platforms }}\" }'"
+    },
+    "actions": {
+      "generate-workflows": [
+        "mkdir -p .github/workflows/",
+        "cp scripts/helper/templates/body-github-pre-releases-test.md .github/workflows/",
+        "cat scripts/helper/templates/build-liquid.yml | {{ properties.LIQUIDJS }} > .github/workflows/build-all.yml",
+        "cat scripts/helper/templates/build-xbbli-liquid.yml | {{ properties.LIQUIDJS }} > .github/workflows/build-xbbli.yml",
+        "cat scripts/helper/templates/build-xbbla32-liquid.yml | {{ properties.LIQUIDJS }} > .github/workflows/build-xbbla32.yml",
+        "cat scripts/helper/templates/build-xbbla64-liquid.yml | {{ properties.LIQUIDJS }} > .github/workflows/build-xbbla64.yml",
+        "cat scripts/helper/templates/build-xbbmi-liquid.yml | {{ properties.LIQUIDJS }} > .github/workflows/build-xbbmi.yml",
+        "cat scripts/helper/templates/build-xbbma-liquid.yml | {{ properties.LIQUIDJS }} > .github/workflows/build-xbbma.yml",
+        "cat scripts/helper/templates/test-prime-liquid.yml | {{ properties.LIQUIDJS }} > .github/workflows/test-prime.yml",
+        "cat scripts/helper/templates/test-docker-linux-intel-liquid.yml | {{ properties.LIQUIDJS }} > .github/workflows/test-docker-linux-intel.yml",
+        "cat scripts/helper/templates/test-docker-linux-arm-liquid.yml | {{ properties.LIQUIDJS }} > .github/workflows/test-docker-linux-arm.yml",
+        "cat scripts/helper/templates/publish-release-liquid.yml | {{ properties.LIQUIDJS }} > .github/workflows/publish-release.yml",
+        "cat scripts/helper/templates/test-xpm-liquid.yml | {{ properties.LIQUIDJS }} > .github/workflows/test-xpm.yml",
+        "cat scripts/helper/templates/deep-clean-liquid.yml | {{ properties.LIQUIDJS }} > .github/workflows/deep-clean.yml"
+      ],
+      "trigger-workflow-build-all": "bash scripts/helper/trigger-workflow-build.sh",
+      "trigger-workflow-build-xbbli": "bash scripts/helper/trigger-workflow-build.sh --machine xbbli",
+      "trigger-workflow-build-xbbla64": "bash scripts/helper/trigger-workflow-build.sh --machine xbbla64",
+      "trigger-workflow-build-xbbla32": "bash scripts/helper/trigger-workflow-build.sh --machine xbbla32",
+      "trigger-workflow-build-xbbmi": "bash scripts/helper/trigger-workflow-build.sh --machine xbbmi",
+      "trigger-workflow-build-xbbma": "bash scripts/helper/trigger-workflow-build.sh --machine xbbma",
+      "trigger-workflow-test-prime": "bash scripts/helper/tests/trigger-workflow-test-prime.sh",
+      "trigger-workflow-test-docker-linux-intel": "bash scripts/helper/tests/trigger-workflow-test-docker-linux-intel.sh",
+      "trigger-workflow-test-docker-linux-arm": "bash scripts/helper/tests/trigger-workflow-test-docker-linux-arm.sh",
+      "trigger-travis-macos": "bash scripts/helper/tests/trigger-travis-macos.sh",
+      "trigger-workflow-publish-release": "bash scripts/helper/trigger-workflow-publish-release.sh",
+      "generate-jekyll-post": "bash scripts/helper/generate-jekyll-post.sh",
+      "update-package-binaries": "bash scripts/helper/update-package-binaries.sh",
+      "trigger-workflow-test-xpm": "bash scripts/helper/tests/trigger-workflow-test-xpm.sh",
+      "trigger-workflow-deep-clean": "bash scripts/helper/trigger-workflow-deep-clean.sh"
+    }
+  },
+  "bundleDependencies": [],
+  "devDependencies": {
+    "liquidjs": "^9.25.1"
+  }
+}
