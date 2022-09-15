@@ -4147,10 +4147,9 @@ function build_flex()
         then
           # cxx_restart fails - https://github.com/westes/flex/issues/98
           # make -k check || true
-          if false # is_darwin && is_arm
+          if [ "${TARGET_PLATFORM}" == "darwin" ] && [ "${TARGET_ARCH}" == "arm64" ]
           then
-            : # Fail with internal error, caused by gm4
-            run_verbose make -k check || true
+            : # Fails with internal error, caused by gm4
           else
             run_verbose make -k check
           fi
