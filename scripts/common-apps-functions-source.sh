@@ -1073,9 +1073,6 @@ function build_tar()
       export CXXFLAGS
       export LDFLAGS
 
-      # Avoid 'configure: error: you should not run configure as root'.
-      # export FORCE_UNSAFE_CONFIGURE=1
-
       if [ ! -f "config.status" ]
       then
         (
@@ -1090,6 +1087,13 @@ function build_tar()
           if [ "${IS_DEVELOP}" == "y" ]
           then
           run_verbose bash "configure" --help
+          fi
+
+          if [ "${HOME}" == "/root" ]
+          then
+            # configure: error: you should not run configure as root
+            # (set FORCE_UNSAFE_CONFIGURE=1 in environment to bypass this check)
+            export FORCE_UNSAFE_CONFIGURE=1
           fi
 
           config_options=()
@@ -1832,7 +1836,7 @@ function build_coreutils()
             run_verbose bash "${SOURCES_FOLDER_PATH}/${coreutils_src_folder_name}/configure" --help
           fi
 
-          if false # [ -f "/.dockerenv" ]
+          if [ "${HOME}" == "/root" ]
           then
             # configure: error: you should not run configure as root
             # (set FORCE_UNSAFE_CONFIGURE=1 in environment to bypass this check)
