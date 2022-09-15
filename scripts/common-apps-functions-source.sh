@@ -5395,6 +5395,9 @@ function build_gnupg()
           config_options+=("--with-ksba-prefix=${LIBS_INSTALL_FOLDER_PATH}")
           config_options+=("--with-npth-prefix=${LIBS_INSTALL_FOLDER_PATH}")
 
+          # On macOS Arm, it fails to load libbz2.1.0.8.dylib
+          config_options+=("--disable-bzip2")
+
           config_options+=("--enable-maintainer-mode")
           config_options+=("--enable-symcryptrun")
 
@@ -5417,7 +5420,16 @@ function build_gnupg()
 
         if [ "${WITH_TESTS}" == "y" ]
         then
-          run_verbose make -j1 check
+          if false # [ "${TARGET_PLATFORM}" == "darwin" ] && [ "${TARGET_ARCH}" == "arm64" ]
+          then
+            : # Fails with:
+            # dyld: Library not loaded: libbz2.1.0.8.dylib
+            # Referenced from: /Users/ilg/Work/xbb-bootstrap-4.0.0/darwin-arm64/build/gnupg-2.3.3/g10/./t-keydb
+            # Reason: image not found
+            # /bin/bash: line 5: 67557 Abort trap: 6           abs_top_srcdir=/Users/ilg/Work/xbb-bootstrap-4.0.0/darwin-arm64/sources/gnupg-2.3.3 ${dir}$tst
+          else
+            run_verbose make -j1 check
+          fi
         fi
 
       ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${gnupg_folder_name}/make-output-$(ndate).txt"
