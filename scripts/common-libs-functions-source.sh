@@ -397,7 +397,7 @@ function build_gc()
 
         if [ "${WITH_TESTS}" == "y" ]
         then
-          if false # is_linux && is_arm && [ "${HOST_BITS}" == "32" ]
+          if [ "${TARGET_PLATFORM}" == "linux" ] && [ "${TARGET_ARCH}" == "arm" ]
           then
             : # FAIL: gctest (on Ubuntu 18)
           else
