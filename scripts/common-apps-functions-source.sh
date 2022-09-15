@@ -2401,16 +2401,13 @@ function build_sed()
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${sed_src_folder_name}/configure" \
             "${config_options[@]}"
 
-if false
-then
-          # Fails on Intel and Arm, better disable it completely.
-          run_verbose sed -i.bak \
-            -e 's|testsuite/panic-tests.sh||g' \
-            "Makefile"
-
-          # Some tests fail due to missing locales.
-          # darwin: FAIL: testsuite/subst-mb-incomplete.sh
-fi
+          if [ "${TARGET_PLATFORM}" == "linux" ]
+          then
+            # Fails on Intel and Arm, better disable it completely.
+            run_verbose sed -i.bak \
+              -e 's|testsuite/panic-tests.sh||g' \
+              "Makefile"
+          fi
 
           cp "config.log" "${LOGS_FOLDER_PATH}/${sed_folder_name}/config-log-$(ndate).txt"
         ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${sed_folder_name}/configure-output-$(ndate).txt"
@@ -2440,6 +2437,8 @@ fi
           if [ "${TARGET_PLATFORM}" == "darwin" ]
           then
             # FAIL:  6
+            # Some tests fail due to missing locales.
+            # darwin: FAIL: testsuite/subst-mb-incomplete.sh
             : run_verbose make -j1 check || true
           else
             run_verbose make -j1 check
