@@ -376,10 +376,7 @@ fi
       LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
-        LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
-      elif [ "${TARGET_PLATFORM}" == "darwin" ]
-      then
-        :
+        LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}:${BINS_INSTALL_FOLDER_PATH}/lib"
       fi
 
       if [[ ${CC} =~ .*gcc.* ]]
