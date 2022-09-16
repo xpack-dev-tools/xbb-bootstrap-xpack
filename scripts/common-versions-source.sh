@@ -18,7 +18,10 @@ function build_versions()
   # Don't use a comma since the regular expression
   # that processes this string in the Makefile, silently fails and the
   # bfdver.h file remains empty.
-  BRANDING="${DISTRO_NAME} ${APP_NAME} ${TARGET_MACHINE}"
+  # BRANDING="${DISTRO_NAME} ${APP_NAME} ${TARGET_MACHINE}"
+
+  XBB_MINGW_BINUTILS_BRANDING="xPack Build Box ${TARGET_MACHINE} Mingw-w64 binutils"
+  XBB_MINGW_GCC_BRANDING="xPack Build Box ${TARGET_MACHINE} Mingw-w64 GCC"
 
   TEST_PATH="${APP_PREFIX}"
   TEST_BIN_PATH="${TEST_PATH}/bin"
@@ -30,9 +33,24 @@ function build_versions()
   if [[ "${RELEASE_VERSION}" =~ 4\.0\.0 ]]
   then
     (
-      xbb_activate
+      if [ "${TARGET_PLATFORM}" == "linux" ]
+      then
+        XBB_GCC_VERSION="11.2.0"
+        XBB_BINUTILS_VERSION="2.36.1"
+
+        XBB_MINGW_VERSION="9.0.0"
+        XBB_MINGW_GCC_VERSION="${XBB_GCC_VERSION}"
+        XBB_MINGW_BINUTILS_VERSION="${XBB_BINUTILS_VERSION}"
+
+        # Hack to avoid libz.1.so not found in binutils linker.
+        export ACCEPT_SYSTEM_LIBZ="y"
+      fi
 
       libtool_version="2.4.6"
+
+      # -----------------------------------------------------------------------
+
+      xbb_activate
 
       # -----------------------------------------------------------------------
 
@@ -41,7 +59,7 @@ function build_versions()
         build_realpath "1.0.0"
       fi
 
-      # -------------------------------------------------------------------------
+      # -----------------------------------------------------------------------
       # Native compiler.
 
       # New zlib, used in most of the tools.
@@ -60,13 +78,13 @@ function build_versions()
       # depends=('gmp')
       build_isl "0.24"
 
-      # -------------------------------------------------------------------------
+      # -----------------------------------------------------------------------
 
       # Replacement for the old libcrypt.so.1.
       build_libxcrypt "4.4.26"
 
       # depends=('perl')
-      build_openssl "1.1.1q"
+      build_openssl "1.1.1q" # "1.1.1l"
 
       # Libraries, required by gnutls.
       # depends=('glibc')
@@ -150,7 +168,7 @@ function build_versions()
       # coreutils-8.32/src/ls.c:3026:24: error: 'SYS_getdents' undeclared (first use in this function); did you mean 'SYS_getdents64'?
       build_coreutils "9.0"
 
-      # -------------------------------------------------------------------------
+      # -----------------------------------------------------------------------
       # GNU tools
 
       # depends=('glibc')
@@ -184,7 +202,7 @@ function build_versions()
       # PATCH!
       build_make "4.3"
 
-      # -------------------------------------------------------------------------
+      # -----------------------------------------------------------------------
       # Third party tools
 
       # depends=('libutil-linux' 'gnutls' 'libidn' 'libpsl>=0.7.1-3' 'gpgme')
@@ -254,7 +272,7 @@ function build_versions()
 
       build_re2c "2.2"
 
-      # -------------------------------------------------------------------------
+      # -----------------------------------------------------------------------
 
       # $1=nvm_version
       # $2=node_version
@@ -274,7 +292,7 @@ function build_versions()
       # "2.2.28" fails on amd64
       build_gnupg  "2.3.3"
 
-      # -------------------------------------------------------------------------
+      # -----------------------------------------------------------------------
 
       # makedepend is needed by openssl
       build_util_macros "1.19.3"
@@ -284,8 +302,16 @@ function build_versions()
 
       # -----------------------------------------------------------------------
 
-if false
-then
+      # Avoid Java for now, not longer available on Apple Silicon.
+      if false
+      then
+        build_ant "1.10.12" # "1.10.10" # "1.10.7"
+
+        build_maven "3.8.3" # "3.8.1" # "3.6.3"
+      fi
+
+      # -----------------------------------------------------------------------
+
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
 
@@ -312,6 +338,9 @@ then
         # Build mingw-w64 binutils and gcc only on Intel Linux.
         if [ "${TARGET_ARCH}" == "x64" ]
         then
+          # x86_64-w64-mingw32
+          MINGW_TARGET="${HOST_MACHINE}-w64-mingw32"
+
           # depends=('zlib')
           build_mingw_binutils "${XBB_MINGW_BINUTILS_VERSION}"
 
@@ -351,7 +380,6 @@ then
             # With the run-time available, build the C/C++ libraries and the rest.
             build_mingw_gcc_final
           )
-
         fi
 
       elif [ "${TARGET_PLATFORM}" == "darwin" ]
@@ -379,7 +407,7 @@ then
         exit 1
       fi
 
-      # -------------------------------------------------------------------------
+      # -----------------------------------------------------------------------
       # Requires mingw-w64 GCC.
 
       # Build wine only on Intel Linux.
@@ -397,8 +425,8 @@ then
         # configure: OpenCL 64-bit development files not found, OpenCL won't be supported.
         # configure: pcap 64-bit development files not found, wpcap won't be supported.
         # configure: libdbus 64-bit development files not found, no dynamic device support.
-        # configure: lib(n)curses 64-bit development files not found, curses won't be supported.
         # configure: libsane 64-bit development files not found, scanners won't be supported.
+        # configure: libusb-1.0 64-bit development files not found (or too old), USB devices won't be supported.
         # configure: libv4l2 64-bit development files not found.
         # configure: libgphoto2 64-bit development files not found, digital cameras won't be supported.
         # configure: libgphoto2_port 64-bit development files not found, digital cameras won't be auto-detected.
@@ -406,7 +434,6 @@ then
         # configure: libpulse 64-bit development files not found or too old, Pulse won't be supported.
         # configure: gstreamer-1.0 base plugins 64-bit development files not found, GStreamer won't be supported.
         # configure: OSS sound system found but too old (OSSv4 needed), OSS won't be supported.
-        # configure: libudev 64-bit development files not found, plug and play won't be supported.
         # configure: libSDL2 64-bit development files not found, SDL2 won't be supported.
         # configure: libFAudio 64-bit development files not found, XAudio2 won't be supported.
         # configure: libcapi20 64-bit development files not found, ISDN won't be supported.
@@ -414,50 +441,50 @@ then
         # configure: fontconfig 64-bit development files not found, fontconfig won't be supported.
         # configure: libgsm 64-bit development files not found, gsm 06.10 codec won't be supported.
         # configure: libkrb5 64-bit development files not found (or too old), Kerberos won't be supported.
+        # configure: jxrlib 64-bit development files not found, JPEG-XR won't be supported.
         # configure: libtiff 64-bit development files not found, TIFF won't be supported.
         # configure: libmpg123 64-bit development files not found (or too old), mp3 codec won't be supported.
         # configure: libopenal 64-bit development files not found (or too old), OpenAL won't be supported.
         # configure: libvulkan and libMoltenVK 64-bit development files not found, Vulkan won't be supported.
         # configure: vkd3d 64-bit development files not found (or too old), Direct3D 12 won't be supported.
         # configure: libldap (OpenLDAP) 64-bit development files not found, LDAP won't be supported.
-
-        # configure: WARNING: libxml2 64-bit development files not found (or too old), XML won't be supported.
         # configure: WARNING: libxslt 64-bit development files not found, xslt won't be supported.
         # configure: WARNING: libjpeg 64-bit development files not found, JPEG won't be supported.
         # configure: WARNING: No sound system was found. Windows applications will be silent.
+
       fi
-fi
+
       # -----------------------------------------------------------------------
       # Python family.
-if true
-then
-      # macOS 10.13/11.6 use 2.7.16, close enough.
-      # On Apple Silicon it fails, it is not worth the effort.
-      # On Ubuntu 18 there is 2.7.17; not much difference with 2.7.18.
-      # depends=('bzip2' 'gdbm' 'openssl' 'zlib' 'expat' 'sqlite' 'libffi')
-      # build_python2 "2.7.18"
+      if true
+      then
+        # macOS 10.13/11.6 use 2.7.16, close enough.
+        # On Apple Silicon it fails, it is not worth the effort.
+        # On Ubuntu 18 there is 2.7.17; not much difference with 2.7.18.
+        # depends=('bzip2' 'gdbm' 'openssl' 'zlib' 'expat' 'sqlite' 'libffi')
+        # build_python2 "2.7.18"
 
-      # homebrew: gdbm, mpdecimal, openssl, readline, sqlite, xz; bzip2, expat, libffi, ncurses, unzip, zlib
-      # arch: 'bzip2' 'expat' 'gdbm' 'libffi' 'libnsl' 'libxcrypt' 'openssl' 'zlib'
-      build_python3 "3.9.9"
+        # homebrew: gdbm, mpdecimal, openssl, readline, sqlite, xz; bzip2, expat, libffi, ncurses, unzip, zlib
+        # arch: 'bzip2' 'expat' 'gdbm' 'libffi' 'libnsl' 'libxcrypt' 'openssl' 'zlib'
+        build_python3 "3.9.9"
 
-      # The necessary bits to build these optional modules were not found:
-      # _bz2                  _dbm                  _gdbm
-      # _sqlite3              _tkinter              _uuid
-      # Failed to build these modules:
-      # _curses               _curses_panel         _decimal
+        # The necessary bits to build these optional modules were not found:
+        # _bz2                  _dbm                  _gdbm
+        # _sqlite3              _tkinter              _uuid
+        # Failed to build these modules:
+        # _curses               _curses_panel         _decimal
 
-      # depends=('python3')
-      # "4.1.0" fails on macOS 10.13
-      # TODO
-      # build_scons "4.4.0" # "4.2.0"
+        # depends=('python3')
+        # "4.1.0" fails on macOS 10.13
+        # TODO
+        # build_scons "4.2.0"
 
-      # TODO
-      # build_sphinx "4.3.0"
+        # TODO
+        # build_sphinx "4.3.0"
 
-      # skipped, alredy available as an xPack
-      # build_meson "0.60.2"
-fi
+        # skipped, alredy available as an xPack
+        # build_meson "0.60.2"
+      fi
 
       rm -rfv "${APP_PREFIX}/man"
       rm -rfv "${APP_PREFIX}/share/man"
