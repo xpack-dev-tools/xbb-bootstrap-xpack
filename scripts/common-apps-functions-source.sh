@@ -62,7 +62,8 @@ function build_realpath()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -91,7 +92,7 @@ function build_realpath()
     )
 
     (
-      test_realpath
+      test_realpath "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${realpath_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -102,18 +103,18 @@ function build_realpath()
     echo "Component realpath already installed."
   fi
 
-  test_functions+=("test_realpath")
+  tests_add "test_realpath" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_realpath()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Checking the realpath binaries shared libraries..."
 
-    show_libs "${TEST_PATH}/bin/realpath"
+    show_libs "${test_bin_folder_path}/realpath"
   )
 }
 
@@ -126,6 +127,10 @@ function build_patchelf()
   # https://github.com/NixOS/patchelf/releases/
   # https://github.com/NixOS/patchelf/releases/download/0.12/patchelf-0.12.tar.bz2
   # https://github.com/NixOS/patchelf/archive/0.12.tar.gz
+
+  # https://github.com/archlinux/svntogit-community/blob/packages/patchelf/trunk/PKGBUILD
+  # https://github.com/Homebrew/homebrew-core/blob/master/Formula/patchelf.rb
+
 
   # 2016-02-29, "0.9"
   # 2019-03-28, "0.10"
@@ -162,7 +167,6 @@ function build_patchelf()
 
         cd "${SOURCES_FOLDER_PATH}/${patchelf_src_folder_name}"
 
-        xbb_activate_installed_bin
         xbb_activate_installed_dev
 
         run_verbose bash ${DEBUG} "bootstrap.sh"
@@ -179,9 +183,9 @@ function build_patchelf()
       CPPFLAGS="${XBB_CPPFLAGS}"
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
-      # Wihtout -static-libstdc++, the bootstrap lib folder is needed to
-      # find libstdc++.
 
+      # Wihtout -static-libstdc++, it fails with
+      # /usr/lib/x86_64-linux-gnu/libstdc++.so.6: version `GLIBCXX_3.4.29' not found
       LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
@@ -221,9 +225,11 @@ function build_patchelf()
           config_options+=("--host=${HOST}")
           config_options+=("--target=${TARGET}")
 
-          if false # is_linux
+          config_options+=("--disable-debug") # HB
+          config_options+=("--disable-dependency-tracking") # HB
+          if [ "${IS_DEVELOP}" == "y" ]
           then
-            config_options+=("--disable-new-dtags")
+            config_options+=("--disable-silent-rules") # HB
           fi
 
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${patchelf_src_folder_name}/configure" \
@@ -240,8 +246,12 @@ function build_patchelf()
         # Build.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         # Fails.
         # x86_64: FAIL: set-rpath-library.sh (Segmentation fault (core dumped))
@@ -256,7 +266,7 @@ function build_patchelf()
     )
 
     (
-      test_patchelf
+      test_patchelf "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${patchelf_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -267,23 +277,25 @@ function build_patchelf()
     echo "Component patchelf already installed."
   fi
 
-  test_functions+=("test_patchelf")
+  tests_add "test_patchelf" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_patchelf()
 {
+  local test_bin_folder_path="$1"
+
   (
     # xbb_activate_installed_bin
 
     echo
     echo "Checking the patchelf binaries shared libraries..."
 
-    show_libs "${TEST_PATH}/bin/patchelf"
+    show_libs "${test_bin_folder_path}/patchelf"
 
     echo
     echo "Testing if patchelf binaries start properly..."
 
-    run_app "${TEST_PATH}/bin/patchelf" --version
+    run_app "${test_bin_folder_path}/patchelf" --version
   )
 }
 
@@ -300,9 +312,12 @@ function build_python3()
 
   # https://github.com/Homebrew/homebrew-core/blob/master/Formula/python@3.10.rb
 
+  ## https://github.com/archlinux/svntogit-packages/blob/packages/python/trunk/PKGBUILD
   # https://archlinuxarm.org/packages/aarch64/python/files/PKGBUILD
   # https://git.archlinux.org/svntogit/packages.git/tree/trunk/PKGBUILD?h=packages/python
   # https://git.archlinux.org/svntogit/packages.git/tree/trunk/PKGBUILD?h=packages/python-pip
+
+  # https://github.com/Homebrew/homebrew-core/blob/master/Formula/python@3.9.rb
 
   # 2018-12-24, "3.7.2"
   # March 25, 2019, "3.7.3"
@@ -373,7 +388,8 @@ fi
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}:${BINS_INSTALL_FOLDER_PATH}/lib"
@@ -430,23 +446,30 @@ fi
           config_options+=("--host=${HOST}")
           config_options+=("--target=${TARGET}")
 
-          config_options+=("--with-universal-archs=${TARGET_BITS}-bit")
-          config_options+=("--with-computed-gotos")
-          config_options+=("--with-dbmliborder=gdbm:ndbm")
+          config_options+=("--without-ensurepip") # HB, Arch
 
-          # From Brew, but better not, allow configure to choose.
-          # config_options+=("--with-system-expat")
-          # config_options+=("--with-system-ffi")
-          # config_options+=("--with-system-libmpdec")
+          config_options+=("--with-universal-archs=${TARGET_BITS}-bit")
+          config_options+=("--with-computed-gotos") # Arch
+          config_options+=("--with-dbmliborder=gdbm:ndbm") # HB, Arch
+
+          config_options+=("--with-lto") # HB, Arch
+
+          config_options+=("--with-system-expat") # HB, Arch
+          config_options+=("--with-system-ffi") # HB, Arch
+          config_options+=("--with-system-libmpdec") # HB, Arch
+
+          # config_options+=("--with-dtrace") # HB
 
           # config_options+=("--with-openssl=${INSTALL_FOLDER_PATH}")
-          config_options+=("--without-ensurepip")
-          config_options+=("--without-lto")
 
           # Create the PythonX.Y.so.
-          config_options+=("--enable-shared")
+          config_options+=("--enable-shared") # HB, Arch
 
-          # config_options+=("--enable-loadable-sqlite-extensions")
+          config_options+=("--enable-optimizations") # HB, Arch
+
+          # config_options+=("--enable-ipv6") # HB, Arch
+
+          # config_options+=("--enable-loadable-sqlite-extensions") # HB, Arch
           config_options+=("--disable-loadable-sqlite-extensions")
 
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${python3_src_folder_name}/configure" \
@@ -467,6 +490,12 @@ fi
 
         run_verbose make altinstall
 
+        (
+          cd "${BINS_INSTALL_FOLDER_PATH}/bin"
+          run_verbose ln -svf "python${PYTHON3_VERSION_MAJOR}.${PYTHON3_VERSION_MINOR}" \
+            "python${PYTHON3_VERSION_MAJOR}"
+        )
+
         # Hundreds of tests, take a lot of time.
         # Many failures.
         if false # [ "${WITH_TESTS}" == "y" ]
@@ -478,7 +507,7 @@ fi
     )
 
     (
-      test_python3
+      test_python3 "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${python3_folder_name}/test-output-$(ndate).txt"
 
     copy_license \
@@ -491,54 +520,28 @@ fi
     echo "Component python3 already installed."
   fi
 
-# TODO
-    test_functions+=("test_python3")
+  tests_add "test_python3" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_python3()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Checking the python3 binary shared libraries..."
 
-if false
-then
-    show_libs "${LIBS_INSTALL_FOLDER_PATH}/bin/python3.${PYTHON3_VERSION_MINOR}"
-    if [ -f "${LIBS_INSTALL_FOLDER_PATH}/lib/libpython${PYTHON3_VERSION_MAJOR}.${PYTHON3_VERSION_MINOR}m.${SHLIB_EXT}" ]
-    then
-      show_libs "${LIBS_INSTALL_FOLDER_PATH}/lib/libpython${PYTHON3_VERSION_MAJOR}.${PYTHON3_VERSION_MINOR}m.${SHLIB_EXT}"
-    elif [ -f "${LIBS_INSTALL_FOLDER_PATH}/lib/libpython${PYTHON3_VERSION_MAJOR}.${PYTHON3_VERSION_MINOR}.${SHLIB_EXT}" ]
-    then
-      show_libs "${LIBS_INSTALL_FOLDER_PATH}/lib/libpython${PYTHON3_VERSION_MAJOR}.${PYTHON3_VERSION_MINOR}.${SHLIB_EXT}"
-    fi
-else
-    show_libs "${TEST_PATH}/bin/python3.${PYTHON3_VERSION_MINOR}"
-    if [ -f "${TEST_PATH}/lib/libpython${PYTHON3_VERSION_MAJOR}.${PYTHON3_VERSION_MINOR}m.${SHLIB_EXT}" ]
-    then
-      show_libs "${TEST_PATH}/lib/libpython${PYTHON3_VERSION_MAJOR}.${PYTHON3_VERSION_MINOR}m.${SHLIB_EXT}"
-    elif [ -f "${TEST_PATH}/lib/libpython${PYTHON3_VERSION_MAJOR}.${PYTHON3_VERSION_MINOR}.${SHLIB_EXT}" ]
-    then
-      show_libs "${TEST_PATH}/lib/libpython${PYTHON3_VERSION_MAJOR}.${PYTHON3_VERSION_MINOR}.${SHLIB_EXT}"
-    fi
-fi
+    show_libs "${test_bin_folder_path}/../lib/libpython3.${SHLIB_EXT}"
+
     echo
     echo "Testing if the python3 binary starts properly..."
 
     export LD_LIBRARY_PATH="${LIBS_INSTALL_FOLDER_PATH}/lib"
-if false
-then
-    run_app "${LIBS_INSTALL_FOLDER_PATH}/bin/python3.${PYTHON3_VERSION_MINOR}" --version
 
-    run_app "${LIBS_INSTALL_FOLDER_PATH}/bin/python3.${PYTHON3_VERSION_MINOR}" -c 'import sys; print(sys.path)'
-    run_app "${LIBS_INSTALL_FOLDER_PATH}/bin/python3.${PYTHON3_VERSION_MINOR}" -c 'import sys; print(sys.prefix)'
-else
-    run_app "${TEST_PATH}/bin/python3.${PYTHON3_VERSION_MINOR}" --version
+    run_app "${test_bin_folder_path}/python3" --version
 
-    run_app "${TEST_PATH}/bin/python3.${PYTHON3_VERSION_MINOR}" -c 'import sys; print(sys.path)'
-    run_app "${TEST_PATH}/bin/python3.${PYTHON3_VERSION_MINOR}" -c 'import sys; print(sys.prefix)'
-fi
+    run_app "${test_bin_folder_path}/python3" -c 'import sys; print(sys.path)'
+    run_app "${test_bin_folder_path}/python3" -c 'import sys; print(sys.prefix)'
   )
 }
 
@@ -610,7 +613,8 @@ function build_scons()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -641,7 +645,7 @@ function build_scons()
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${scons_folder_name}/install-output-$(ndate).txt"
 
     (
-      test_scons
+      test_scons "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${scons_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -652,16 +656,18 @@ function build_scons()
     echo "Component scons already installed."
   fi
 
-  test_functions+=("test_scons")
+  tests_add "test_scons" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_scons()
 {
+  local test_bin_folder_path="$1"
+
   (
     echo
     echo "Testing if scons binaries start properly..."
 
-    run_app "${TEST_PATH}/bin/scons" --version
+    run_app "${test_bin_folder_path}/scons" --version
   )
 }
 
@@ -672,8 +678,12 @@ function build_pkg_config()
   # https://www.freedesktop.org/wiki/Software/pkg-config/
   # https://pkgconfig.freedesktop.org/releases/
 
+  # https://github.com/archlinux/svntogit-packages/blob/packages/pkgconf/trunk/PKGBUILD
   # https://archlinuxarm.org/packages/aarch64/pkgconf/files/PKGBUILD
+
   # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=pkg-config-git
+
+  # https://github.com/Homebrew/homebrew-core/blob/master/Formula/pkg-config.rb
 
   # 2017-03-20, "0.29.2", latest
 
@@ -714,7 +724,8 @@ function build_pkg_config()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -754,15 +765,15 @@ function build_pkg_config()
           config_options+=("--host=${HOST}")
           config_options+=("--target=${TARGET}")
 
-          config_options+=("--with-internal-glib")
+          config_options+=("--with-internal-glib") # HB
           config_options+=("--with-pc-path=")
 
           # On Intel Linux
           # gconvert.c:61:2: error: #error GNU libiconv not in use but included iconv.h is from libiconv
           config_options+=("--with-libiconv=yes")
 
-          config_options+=("--disable-debug")
-          config_options+=("--disable-host-tool")
+          config_options+=("--disable-debug") # HB
+          config_options+=("--disable-host-tool") # HB
 
           # --with-internal-glib fails with
           # gconvert.c:61:2: error: #error GNU libiconv not in use but included iconv.h is from libiconv
@@ -780,8 +791,12 @@ function build_pkg_config()
         # Build.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install-exec
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         if [ "${WITH_TESTS}" == "y" ]
         then
@@ -796,7 +811,7 @@ function build_pkg_config()
     )
 
     (
-      test_pkg_config
+      test_pkg_config "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${pkg_config_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -807,23 +822,23 @@ function build_pkg_config()
     echo "Component pkg_config already installed."
   fi
 
-  test_functions+=("test_pkg_config")
+  tests_add "test_pkg_config" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_pkg_config()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Checking the pkg_config binaries shared libraries..."
 
-    show_libs "${TEST_PATH}/bin/pkg-config"
+    show_libs "${test_bin_folder_path}/pkg-config"
 
     echo
     echo "Testing if pkg_config binaries start properly..."
 
-    run_app "${TEST_PATH}/bin/pkg-config" --version
+    run_app "${test_bin_folder_path}/pkg-config" --version
   )
 }
 
@@ -835,6 +850,7 @@ function build_curl()
   # https://curl.haxx.se/download/
   # https://curl.haxx.se/download/curl-7.64.1.tar.xz
 
+  # https://github.com/archlinux/svntogit-packages/blob/packages/curl/trunk/PKGBUILD
   # https://archlinuxarm.org/packages/aarch64/curl/files/PKGBUILD
   # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=curl-git
 
@@ -878,7 +894,8 @@ function build_curl()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -922,19 +939,52 @@ function build_curl()
           config_options+=("--host=${HOST}")
           config_options+=("--target=${TARGET}")
 
-          config_options+=("--with-gssapi")
-#          config_options+=("--with-ca-bundle=${BINS_INSTALL_FOLDER_PATH}/openssl/ca-bundle.crt")
+          config_options+=("--with-gssapi") # Arch, HB
+          config_options+=("--with-default-ssl-backend=openssl") # HB
+
+          # config_options+=("--with-libidn2") # HB
+          # config_options+=("--with-librtmp") # HB
+
+         if false
+         then
+           config_options+=("--with-ca-bundle=${BINS_INSTALL_FOLDER_PATH}/openssl/ca-bundle.crt") # Arch
+          else
+            config_options+=("--without-ca-bundle") # HB
+
+            # DO NOT enable it
+            # curl: (60) SSL certificate problem: unable to get local issuer certificate
+            # config_options+=("--without-ca-path") # HB
+
+            # Use the built in CA store of the SSL library
+            config_options+=("--with-ca-fallback") # HB
+          fi
+
           config_options+=("--with-ssl")
+          config_options+=("--with-secure-transport") # HB
+
+          # config_options+=("--with-libssh2") # Arch
+          config_options+=("--with-openssl") # Arch
+          config_options+=("--with-random='/dev/urandom'") # Arch
 
           config_options+=("--enable-optimize")
-          config_options+=("--enable-versioned-symbols")
-          config_options+=("--enable-threaded-resolver")
-          config_options+=("--disable-manual")
-          config_options+=("--disable-ldap")
-          config_options+=("--disable-ldaps")
+          config_options+=("--enable-threaded-resolver") # Arch
+          # config_options+=("--enable-ipv6") # Arch
+
+          # config_options+=("--enable-versioned-symbols") # Arch
+          config_options+=("--disable-versioned-symbols")
+
+          config_options+=("--disable-manual") # Arch
+          config_options+=("--disable-ldap") # Arch
+          config_options+=("--disable-ldaps") # Arch
           config_options+=("--disable-werror")
           config_options+=("--disable-warnings")
-          config_options+=("--disable-debug")
+
+          config_options+=("--disable-debug") # HB
+          config_options+=("--disable-dependency-tracking") # HB
+          if [ "${IS_DEVELOP}" == "y" ]
+          then
+            config_options+=("--disable-silent-rules") # HB
+          fi
 
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${curl_src_folder_name}/configure" \
             "${config_options[@]}"
@@ -950,7 +1000,12 @@ function build_curl()
         # Build.
         run_verbose make -j ${JOBS}
 
-        run_verbose make install-exec
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         if false # [ "${WITH_TESTS}" == "y" ]
         then
@@ -971,7 +1026,7 @@ function build_curl()
     )
 
     (
-      test_curl
+      test_curl "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${curl_folder_name}/test-output-$(ndate).txt"
 
     touch "${curl_stamp_file_path}"
@@ -980,26 +1035,29 @@ function build_curl()
     echo "Component curl already installed."
   fi
 
-  test_functions+=("test_curl")
+  tests_add "test_curl" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_curl()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Checking the curl shared libraries..."
 
-    show_libs "${TEST_PATH}/bin/curl"
+    show_libs "${test_bin_folder_path}/curl"
 
     echo
     echo "Testing if curl binaries start properly..."
 
-    run_app "${TEST_PATH}/bin/curl" --version
+    run_app "${test_bin_folder_path}/curl" --version
 
-    run_app "${TEST_PATH}/bin/curl" \
-      -L https://github.com/xpack-dev-tools/content/raw/master/README.md \
+    rm -rf "${TESTS_FOLDER_PATH}/curl"
+    mkdir -pv "${TESTS_FOLDER_PATH}/curl"; cd "${TESTS_FOLDER_PATH}/curl"
+
+    run_app "${test_bin_folder_path}/curl" \
+      -L https://github.com/xpack-dev-tools/.github/raw/master/README.md \
       --output test-output.md
   )
 }
@@ -1011,8 +1069,11 @@ function build_tar()
   # https://www.gnu.org/software/tar/
   # https://ftp.gnu.org/gnu/tar/
 
+  # https://github.com/archlinux/svntogit-packages/blob/packages/tar/trunk/PKGBUILD
   # https://archlinuxarm.org/packages/aarch64/tar/files/PKGBUILD
   # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=tar-git
+
+  # https://github.com/Homebrew/homebrew-core/blob/master/Formula/gnu-tar.rb
 
   # 2016-05-16 "1.29"
   # 2017-12-17 "1.30"
@@ -1059,7 +1120,8 @@ function build_tar()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -1105,6 +1167,8 @@ function build_tar()
           config_options+=("--host=${HOST}")
           config_options+=("--target=${TARGET}")
 
+          config_options+=("--disable-nls")
+
           run_verbose bash ${DEBUG} "configure" \
             "${config_options[@]}"
 
@@ -1119,8 +1183,12 @@ function build_tar()
         # Build.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install-exec
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         (
           echo
@@ -1160,7 +1228,7 @@ function build_tar()
     )
 
     (
-      test_tar
+      test_tar "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${tar_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -1171,23 +1239,42 @@ function build_tar()
     echo "Component tar already installed."
   fi
 
-  test_functions+=("test_tar")
+  tests_add "test_tar" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_tar()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Checking the tar shared libraries..."
 
-    show_libs "${TEST_PATH}/bin/tar"
+    show_libs "${test_bin_folder_path}/tar"
 
     echo
     echo "Testing if tar binaries start properly..."
 
-    run_app "${TEST_PATH}/bin/tar" --version
+    run_app "${test_bin_folder_path}/tar" --version
+
+    rm -rf "${TESTS_FOLDER_PATH}/tar"
+    mkdir -pv "${TESTS_FOLDER_PATH}/tar"; cd "${TESTS_FOLDER_PATH}/tar"
+
+    echo "hello" >hello.txt
+
+    run_app "${test_bin_folder_path}/tar" -czvf hello.tar.gz hello.txt
+    run_app "${test_bin_folder_path}/tar" -cJvf hello.tar.xz hello.txt
+
+    mv hello.txt hello.txt.orig
+
+
+    run_app "${test_bin_folder_path}/tar" -xzvf hello.tar.gz hello.txt
+    cmp hello.txt hello.txt.orig
+
+    rm hello.txt
+    run_app "${test_bin_folder_path}/tar" -xJvf hello.tar.xz hello.txt
+    cmp hello.txt hello.txt.orig
+
   )
 }
 
@@ -1248,7 +1335,8 @@ function build_libtool()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -1293,7 +1381,13 @@ function build_libtool()
           config_options+=("--host=${HOST}")
           config_options+=("--target=${TARGET}")
 
-          config_options+=("--enable-ltdl-install")
+          config_options+=("--disable-dependency-tracking") # HB
+          if [ "${IS_DEVELOP}" == "y" ]
+          then
+            config_options+=("--disable-silent-rules") # HB
+          fi
+
+          config_options+=("--enable-ltdl-install") # HB
 
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${libtool_src_folder_name}/configure" \
             "${config_options[@]}"
@@ -1309,8 +1403,12 @@ function build_libtool()
         # Build.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         (
           echo
@@ -1338,7 +1436,8 @@ function build_libtool()
     )
 
     (
-      test_libtool
+      test_libtool_libs
+      test_libtool "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${libtool_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -1351,29 +1450,32 @@ function build_libtool()
 
   if [ -z "${step}" ]
   then
-    test_functions+=("test_libtool")
+    : # tests_add "test_libtool" "${BINS_INSTALL_FOLDER_PATH}/bin"
   fi
+}
+
+function test_libtool_libs()
+{
+  echo
+  echo "Checking the libtool shared libraries..."
+
+  show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/libltdl.${SHLIB_EXT})"
 }
 
 function test_libtool()
 {
+  local test_bin_folder_path="$1"
+
   (
-    # xbb_activate_installed_bin
-
-    echo
-    echo "Checking the libtool shared libraries..."
-
-    show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/libltdl.${SHLIB_EXT})"
-
     echo
     echo "Testing if libtool binaries start properly..."
 
-    run_app "${TEST_PATH}/bin/libtool" --version
+    run_app "${test_bin_folder_path}/libtool" --version
 
     echo
     echo "Testing if libtool binaries display help..."
 
-    run_app "${TEST_PATH}/bin/libtool" --help
+    run_app "${test_bin_folder_path}/libtool" --help
   )
 }
 
@@ -1384,6 +1486,7 @@ function build_guile()
   # https://www.gnu.org/software/guile/
   # https://ftp.gnu.org/gnu/guile/
 
+  # https://github.com/archlinux/svntogit-packages/blob/packages/guile/trunk/PKGBUILD
   # https://archlinuxarm.org/packages/aarch64/guile/files/PKGBUILD
   # https://github.com/Homebrew/homebrew-core/blob/master/Formula/guile.rb
   # https://github.com/Homebrew/homebrew-core/blob/master/Formula/guile@2.rb
@@ -1423,7 +1526,8 @@ function build_guile()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -1471,7 +1575,17 @@ function build_guile()
           config_options+=("--host=${HOST}")
           config_options+=("--target=${TARGET}")
 
-          config_options+=("--disable-error-on-warning")
+          # config_options+=("--disable-static") # Arch
+          config_options+=("--disable-error-on-warning") # HB, Arch
+
+          config_options+=("--disable-debug") # HB
+          config_options+=("--disable-dependency-tracking") # HB
+          if [ "${IS_DEVELOP}" == "y" ]
+          then
+            config_options+=("--disable-silent-rules") # HB
+          fi
+
+          config_options+=("--disable-nls")
 
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${guile_src_folder_name}/configure" \
             "${config_options[@]}"
@@ -1507,8 +1621,12 @@ fi
         # Requires GC with dynamic load support.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         if false # [ "${RUN_TESTS}" == "y" ]
         then
@@ -1530,7 +1648,8 @@ fi
     )
 
     (
-      test_guile
+      test_guile_libs
+      test_guile "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${guile_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -1541,20 +1660,25 @@ fi
     echo "Component guile already installed."
   fi
 
-  test_functions+=("test_guile")
+  tests_add "test_guile" "${BINS_INSTALL_FOLDER_PATH}/bin"
+}
+
+function test_guile_libs()
+{
+  echo
+  echo "Checking the guile shared libraries..."
+
+  show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/libguile-2.2.${SHLIB_EXT})"
+  show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/guile/2.2/extensions/guile-readline.so)"
 }
 
 function test_guile()
 {
   (
-    # xbb_activate_installed_bin
-
     echo
     echo "Checking the guile shared libraries..."
 
     show_libs "${BINS_INSTALL_FOLDER_PATH}/bin/guile"
-    show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/libguile-2.2.${SHLIB_EXT})"
-    show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/guile/2.2/extensions/guile-readline.so)"
 
     echo
     echo "Testing if guile binaries start properly..."
@@ -1572,7 +1696,9 @@ function build_autogen()
   # https://ftp.gnu.org/gnu/autogen/
   # https://ftp.gnu.org/gnu/autogen/rel5.18.16/autogen-5.18.16.tar.xz
 
+  # https://github.com/archlinux/svntogit-packages/blob/packages/autogen/trunk/PKGBUILD
   # https://archlinuxarm.org/packages/aarch64/autogen/files/PKGBUILD
+
   # https://github.com/Homebrew/homebrew-core/blob/master/Formula/autogen.rb
 
   # 2018-08-26, "5.18.16"
@@ -1608,7 +1734,8 @@ function build_autogen()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -1662,9 +1789,17 @@ function build_autogen()
           config_options+=("--host=${HOST}")
           config_options+=("--target=${TARGET}")
 
-          config_options+=("--disable-dependency-tracking")
+          config_options+=("--disable-debug") # HB
+          config_options+=("--disable-dependency-tracking") # HB
+          if [ "${IS_DEVELOP}" == "y" ]
+          then
+            config_options+=("--disable-silent-rules") # HB
+          fi
+
+          config_options+=("--disable-nls")
+
           config_options+=("--program-prefix=")
-          config_options+=("ac_cv_func_utimensat=no")
+          # config_options+=("ac_cv_func_utimensat=no")
 
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${autogen_src_folder_name}/configure" \
             "${config_options[@]}"
@@ -1698,7 +1833,12 @@ fi
         # Build.
         run_verbose make -j ${JOBS}
 
-        run_verbose make install
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         if false # [ "${WITH_TESTS}" == "y" ]
         then
@@ -1714,7 +1854,8 @@ fi
     )
 
     (
-      test_autogen
+      test_autogen_libs
+      test_autogen "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${autogen_folder_name}/test-output-$(ndate).txt"
 
     touch "${autogen_stamp_file_path}"
@@ -1723,38 +1864,41 @@ fi
     echo "Component autogen already installed."
   fi
 
-  test_functions+=("test_autogen")
+  tests_add "test_autogen" "${BINS_INSTALL_FOLDER_PATH}/bin"
+}
+
+function test_autogen_libs()
+{
+  show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/libopts.${SHLIB_EXT})"
 }
 
 function test_autogen()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Checking the autogen shared libraries..."
 
-    show_libs "${TEST_PATH}/bin/autogen"
-    show_libs "${TEST_PATH}/bin/columns"
-    show_libs "${TEST_PATH}/bin/getdefs"
-
-    show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/libopts.${SHLIB_EXT})"
+    show_libs "${test_bin_folder_path}/autogen"
+    show_libs "${test_bin_folder_path}/columns"
+    show_libs "${test_bin_folder_path}/getdefs"
 
     echo
     echo "Testing if autogen binaries start properly..."
 
-    run_app "${TEST_PATH}/bin/autogen" --version
-    run_app "${TEST_PATH}/bin/autoopts-config" --version
-    run_app "${TEST_PATH}/bin/columns" --version
-    run_app "${TEST_PATH}/bin/getdefs" --version
+    run_app "${test_bin_folder_path}/autogen" --version
+    run_app "${test_bin_folder_path}/autoopts-config" --version
+    run_app "${test_bin_folder_path}/columns" --version
+    run_app "${test_bin_folder_path}/getdefs" --version
 
     echo
     echo "Testing if autogen binaries display help..."
 
-    run_app "${TEST_PATH}/bin/autogen" --help
+    run_app "${test_bin_folder_path}/autogen" --help
 
     # getdefs error:  invalid option descriptor for version
-    run_app "${TEST_PATH}/bin/getdefs" --help || true
+    run_app "${test_bin_folder_path}/getdefs" --help || true
   )
 }
 
@@ -1765,7 +1909,10 @@ function build_coreutils()
   # https://www.gnu.org/software/coreutils/
   # https://ftp.gnu.org/gnu/coreutils/
 
+  # https://github.com/archlinux/svntogit-packages/blob/packages/coreutils/trunk/PKGBUILD
   # https://archlinuxarm.org/packages/aarch64/coreutils/files/PKGBUILD
+
+  # https://github.com/Homebrew/homebrew-core/blob/master/Formula/coreutils.rb
 
   # 2018-07-01, "8.30"
   # 2019-03-10 "8.31"
@@ -1802,7 +1949,8 @@ function build_coreutils()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -1848,24 +1996,36 @@ function build_coreutils()
           config_options+=("--host=${HOST}")
           config_options+=("--target=${TARGET}")
 
+          config_options+=("--without-selinux") # HB
+
           config_options+=("--with-universal-archs=${TARGET_BITS}-bit")
           config_options+=("--with-computed-gotos")
           config_options+=("--with-dbmliborder=gdbm:ndbm")
 
-          config_options+=("--with-openssl")
+          config_options+=("--with-openssl") # Arch
+
+          config_options+=("--with-gmp") # HB
+
+          config_options+=("--disable-debug") # HB
+          config_options+=("--disable-dependency-tracking") # HB
+          if [ "${IS_DEVELOP}" == "y" ]
+          then
+            config_options+=("--disable-silent-rules") # HB
+          fi
+
+          config_options+=("--disable-nls")
 
           if [ "${TARGET_PLATFORM}" == "darwin" ]
           then
+            # --program-prefix=g # HB
+            # `ar` must be excluded, it interferes with Apple similar program.
             config_options+=("--enable-no-install-program=ar")
           fi
 
-          # set +u
+          # --enable-no-install-program=groups,hostname,kill,uptime # Arch
 
-          # `ar` must be excluded, it interferes with Apple similar program.
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${coreutils_src_folder_name}/configure" \
             "${config_options[@]}"
-
-          # set -u
 
           cp "config.log" "${LOGS_FOLDER_PATH}/${coreutils_folder_name}/config-log-$(ndate).txt"
         ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${coreutils_folder_name}/configure-output-$(ndate).txt"
@@ -1878,8 +2038,12 @@ function build_coreutils()
         # Build.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install-exec
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         # Takes very long and fails.
         # x86_64: FAIL: tests/misc/chroot-credentials.sh
@@ -1895,7 +2059,7 @@ function build_coreutils()
     )
 
     (
-      test_coreutils
+      test_coreutils "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${coreutils_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -1906,60 +2070,60 @@ function build_coreutils()
     echo "Component coreutils already installed."
   fi
 
-  test_functions+=("test_coreutils")
+  tests_add "test_coreutils" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_coreutils()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Checking the coreutils binaries shared libraries..."
 
-    show_libs "${TEST_PATH}/bin/basename"
-    show_libs "${TEST_PATH}/bin/cat"
-    show_libs "${TEST_PATH}/bin/chmod"
-    show_libs "${TEST_PATH}/bin/chown"
-    show_libs "${TEST_PATH}/bin/cp"
-    show_libs "${TEST_PATH}/bin/dirname"
-    show_libs "${TEST_PATH}/bin/ln"
-    show_libs "${TEST_PATH}/bin/ls"
-    show_libs "${TEST_PATH}/bin/mkdir"
-    show_libs "${TEST_PATH}/bin/mv"
-    show_libs "${TEST_PATH}/bin/printf"
-    show_libs "${TEST_PATH}/bin/realpath"
-    show_libs "${TEST_PATH}/bin/rm"
-    show_libs "${TEST_PATH}/bin/rmdir"
-    show_libs "${TEST_PATH}/bin/sha256sum"
-    show_libs "${TEST_PATH}/bin/sort"
-    show_libs "${TEST_PATH}/bin/touch"
-    show_libs "${TEST_PATH}/bin/tr"
-    show_libs "${TEST_PATH}/bin/wc"
+    show_libs "${test_bin_folder_path}/basename"
+    show_libs "${test_bin_folder_path}/cat"
+    show_libs "${test_bin_folder_path}/chmod"
+    show_libs "${test_bin_folder_path}/chown"
+    show_libs "${test_bin_folder_path}/cp"
+    show_libs "${test_bin_folder_path}/dirname"
+    show_libs "${test_bin_folder_path}/ln"
+    show_libs "${test_bin_folder_path}/ls"
+    show_libs "${test_bin_folder_path}/mkdir"
+    show_libs "${test_bin_folder_path}/mv"
+    show_libs "${test_bin_folder_path}/printf"
+    show_libs "${test_bin_folder_path}/realpath"
+    show_libs "${test_bin_folder_path}/rm"
+    show_libs "${test_bin_folder_path}/rmdir"
+    show_libs "${test_bin_folder_path}/sha256sum"
+    show_libs "${test_bin_folder_path}/sort"
+    show_libs "${test_bin_folder_path}/touch"
+    show_libs "${test_bin_folder_path}/tr"
+    show_libs "${test_bin_folder_path}/wc"
 
     echo
     echo "Testing if coreutils binaries start properly..."
 
     echo
-    run_app "${TEST_PATH}/bin/basename" --version
-    run_app "${TEST_PATH}/bin/cat" --version
-    run_app "${TEST_PATH}/bin/chmod" --version
-    run_app "${TEST_PATH}/bin/chown" --version
-    run_app "${TEST_PATH}/bin/cp" --version
-    run_app "${TEST_PATH}/bin/dirname" --version
-    run_app "${TEST_PATH}/bin/ln" --version
-    run_app "${TEST_PATH}/bin/ls" --version
-    run_app "${TEST_PATH}/bin/mkdir" --version
-    run_app "${TEST_PATH}/bin/mv" --version
-    run_app "${TEST_PATH}/bin/printf" --version
-    run_app "${TEST_PATH}/bin/realpath" --version
-    run_app "${TEST_PATH}/bin/rm" --version
-    run_app "${TEST_PATH}/bin/rmdir" --version
-    run_app "${TEST_PATH}/bin/sha256sum" --version
-    run_app "${TEST_PATH}/bin/sort" --version
-    run_app "${TEST_PATH}/bin/touch" --version
-    run_app "${TEST_PATH}/bin/tr" --version
-    run_app "${TEST_PATH}/bin/wc" --version
+    run_app "${test_bin_folder_path}/basename" --version
+    run_app "${test_bin_folder_path}/cat" --version
+    run_app "${test_bin_folder_path}/chmod" --version
+    run_app "${test_bin_folder_path}/chown" --version
+    run_app "${test_bin_folder_path}/cp" --version
+    run_app "${test_bin_folder_path}/dirname" --version
+    run_app "${test_bin_folder_path}/ln" --version
+    run_app "${test_bin_folder_path}/ls" --version
+    run_app "${test_bin_folder_path}/mkdir" --version
+    run_app "${test_bin_folder_path}/mv" --version
+    run_app "${test_bin_folder_path}/printf" --version
+    run_app "${test_bin_folder_path}/realpath" --version
+    run_app "${test_bin_folder_path}/rm" --version
+    run_app "${test_bin_folder_path}/rmdir" --version
+    run_app "${test_bin_folder_path}/sha256sum" --version
+    run_app "${test_bin_folder_path}/sort" --version
+    run_app "${test_bin_folder_path}/touch" --version
+    run_app "${test_bin_folder_path}/tr" --version
+    run_app "${test_bin_folder_path}/wc" --version
   )
 }
 
@@ -1970,6 +2134,7 @@ function build_m4()
   # https://www.gnu.org/software/m4/
   # https://ftp.gnu.org/gnu/m4/
 
+  # https://github.com/archlinux/svntogit-packages/blob/packages/m4/trunk/PKGBUILD
   # https://archlinuxarm.org/packages/aarch64/m4/files/PKGBUILD
   # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=m4-git
 
@@ -2010,7 +2175,8 @@ function build_m4()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -2049,6 +2215,15 @@ function build_m4()
           config_options+=("--host=${HOST}")
           config_options+=("--target=${TARGET}")
 
+          config_options+=("--disable-debug") # HB
+          config_options+=("--disable-dependency-tracking") # HB
+          if [ "${IS_DEVELOP}" == "y" ]
+          then
+            config_options+=("--disable-silent-rules") # HB
+          fi
+
+          config_options+=("--disable-nls")
+
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${m4_src_folder_name}/configure" \
             "${config_options[@]}"
 
@@ -2063,8 +2238,12 @@ function build_m4()
         # Build.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install-exec
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         (
           echo
@@ -2074,11 +2253,9 @@ function build_m4()
           ln -sv m4 gm4
         )
 
-        # Fails on Ubuntu 18
-        # checks/198.sysval:err
-        if false # [ "${RUN_TESTS}" == "y" ]
+        if [ "${WITH_TESTS}" == "y" ]
         then
-          if is_darwin
+          if [ "${TARGET_PLATFORM}" == "darwin" ]
           then
             # On macOS 10.15
             # FAIL: test-fflush2.sh
@@ -2087,6 +2264,9 @@ function build_m4()
             # FAIL: test-ftello2.sh
             run_verbose make -j1 check || true
           else
+            # Fails on Ubuntu 18
+            # checks/198.sysval:err
+            rm -rf "${SOURCES_FOLDER_PATH}/${m4_src_folder_name}/checks/198.sysval"
             run_verbose make -j1 check
           fi
         fi
@@ -2099,7 +2279,7 @@ function build_m4()
     )
 
     (
-      test_m4
+      test_m4 "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${m4_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -2110,23 +2290,30 @@ function build_m4()
     echo "Component m4 already installed."
   fi
 
-  test_functions+=("test_m4")
+  tests_add "test_m4" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_m4()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Checking the m4 binaries shared libraries..."
 
-    show_libs "${TEST_PATH}/bin/m4"
+    show_libs "${test_bin_folder_path}/m4"
 
     echo
     echo "Testing if m4 binaries start properly..."
 
-    run_app "${TEST_PATH}/bin/m4" --version
+    run_app "${test_bin_folder_path}/m4" --version
+
+    rm -rf "${TESTS_FOLDER_PATH}/m4"
+    mkdir -pv "${TESTS_FOLDER_PATH}/m4"; cd "${TESTS_FOLDER_PATH}/m4"
+
+    echo "TEST M4" > hello.txt
+    test_expect  "Hello M4" "${test_bin_folder_path}/m4" -DTEST=Hello hello.txt
+
   )
 }
 
@@ -2137,8 +2324,11 @@ function build_gawk()
   # https://www.gnu.org/software/gawk/
   # https://ftp.gnu.org/gnu/gawk/
 
+  # https://github.com/archlinux/svntogit-packages/blob/packages/gawk/trunk/PKGBUILD
   # https://archlinuxarm.org/packages/aarch64/gawk/files/PKGBUILD
   # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=gawk-git
+
+  # https://github.com/Homebrew/homebrew-core/blob/master/Formula/gawk.rb
 
   # 2017-10-19, "4.2.0"
   # 2018-02-25, "4.2.1"
@@ -2176,7 +2366,8 @@ function build_gawk()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -2234,9 +2425,19 @@ function build_gawk()
           config_options+=("--host=${HOST}")
           config_options+=("--target=${TARGET}")
 
-          config_options+=("--without-libsigsegv")
+          config_options+=("--without-libsigsegv") # Arch
+          # config_options+=("--without-libsigsegv-prefix") # HB
           config_options+=("--disable-extensions")
           config_options+=("--enable-builtin-intdiv0")
+
+          config_options+=("--disable-debug") # HB
+          config_options+=("--disable-dependency-tracking") # HB
+          if [ "${IS_DEVELOP}" == "y" ]
+          then
+            config_options+=("--disable-silent-rules") # HB
+          fi
+
+          config_options+=("--disable-nls")
 
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${gawk_src_folder_name}/configure" \
             "${config_options[@]}"
@@ -2252,14 +2453,18 @@ function build_gawk()
         # Build.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install-exec
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         # Multiple failures, no time to investigate.
         # WARN-TEST
         if false # [ "${RUN_LONG_TESTS}" == "y" ]
         then
-          make -j1 check
+          run_verbose make -j1 check
         fi
 
       ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${gawk_folder_name}/make-output-$(ndate).txt"
@@ -2270,7 +2475,7 @@ function build_gawk()
     )
 
     (
-      test_gawk
+      test_gawk "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${gawk_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -2281,23 +2486,29 @@ function build_gawk()
     echo "Component gawk already installed."
   fi
 
-  test_functions+=("test_gawk")
+  tests_add "test_gawk" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_gawk()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Checking the gawk binaries shared libraries..."
 
-    show_libs "${TEST_PATH}/bin/gawk"
+    show_libs "${test_bin_folder_path}/gawk"
 
     echo
     echo "Testing if gawk binaries start properly..."
 
-    run_app "${TEST_PATH}/bin/gawk" --version
+    run_app "${test_bin_folder_path}/gawk" --version
+
+    rm -rf "${TESTS_FOLDER_PATH}/gawk"
+    mkdir -pv "${TESTS_FOLDER_PATH}/gawk"; cd "${TESTS_FOLDER_PATH}/gawk"
+
+    echo "Macro AWK" >hello.txt
+    test_expect "Hello AWK" "${test_bin_folder_path}/gawk" '{ gsub(/Macro/, "Hello"); print }' hello.txt
   )
 }
 
@@ -2308,7 +2519,10 @@ function build_sed()
   # https://www.gnu.org/software/sed/
   # https://ftp.gnu.org/gnu/sed/
 
+  # https://github.com/archlinux/svntogit-packages/blob/packages/sed/trunk/PKGBUILD
   # https://archlinuxarm.org/packages/aarch64/sed/files/PKGBUILD
+
+  # https://github.com/Homebrew/homebrew-core/blob/master/Formula/gnu-sed.rb
 
   # 2018-12-21, "4.7"
   # 2020-01-14, "4.8"
@@ -2350,7 +2564,8 @@ function build_sed()
         CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
       fi
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -2389,6 +2604,17 @@ function build_sed()
           config_options+=("--host=${HOST}")
           config_options+=("--target=${TARGET}")
 
+          config_options+=("--without-selinux") # HB
+
+          config_options+=("--disable-debug") # HB
+          config_options+=("--disable-dependency-tracking") # HB
+          if [ "${IS_DEVELOP}" == "y" ]
+          then
+            config_options+=("--disable-silent-rules") # HB
+          fi
+
+          config_options+=("--disable-nls")
+
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${sed_src_folder_name}/configure" \
             "${config_options[@]}"
 
@@ -2411,8 +2637,12 @@ function build_sed()
         # Build.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install-exec
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         (
           echo
@@ -2444,7 +2674,7 @@ function build_sed()
     )
 
     (
-      test_sed
+      test_sed "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${sed_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -2455,23 +2685,29 @@ function build_sed()
     echo "Component sed already installed."
   fi
 
-  test_functions+=("test_sed")
+  tests_add "test_sed" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_sed()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Checking the sed binaries shared libraries..."
 
-    show_libs "${TEST_PATH}/bin/sed"
+    show_libs "${test_bin_folder_path}/sed"
 
     echo
     echo "Testing if sed binaries start properly..."
 
-    run_app "${TEST_PATH}/bin/sed" --version
+    run_app "${test_bin_folder_path}/sed" --version
+
+    rm -rf "${TESTS_FOLDER_PATH}/sed"
+    mkdir -pv "${TESTS_FOLDER_PATH}/sed"; cd "${TESTS_FOLDER_PATH}/sed"
+
+    echo "Hello World" >test.txt
+    test_expect "Hello SED" "${test_bin_folder_path}/sed" 's|World|SED|' test.txt
   )
 }
 
@@ -2520,7 +2756,8 @@ function build_autoconf()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -2577,8 +2814,12 @@ function build_autoconf()
         # Build.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         if false # [ "${RUN_LONG_TESTS}" == "y" ]
         then
@@ -2594,7 +2835,7 @@ function build_autoconf()
     )
 
     (
-      test_autoconf
+      test_autoconf "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${autoconf_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -2605,25 +2846,25 @@ function build_autoconf()
     echo "Component autoconf already installed."
   fi
 
-  test_functions+=("test_autoconf")
+  tests_add "test_autoconf" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_autoconf()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Testing if autoconf scripts start properly..."
 
-    run_app "${TEST_PATH}/bin/autoconf" --version
+    run_app "${test_bin_folder_path}/autoconf" --version
 
     # Can't locate Autom4te/ChannelDefs.pm in @INC (you may need to install the Autom4te::ChannelDefs module) (@INC contains: /Users/ilg/Work/xbb-bootstrap-4.0.0/darwin-x64/install/libs/share/autoconf /Users/ilg/.local/xbb/lib/perl5/site_perl/5.34.0/darwin-thread-multi-2level /Users/ilg/.local/xbb/lib/perl5/site_perl/5.34.0 /Users/ilg/.local/xbb/lib/perl5/5.34.0/darwin-thread-multi-2level /Users/ilg/.local/xbb/lib/perl5/5.34.0) at /Users/ilg/Work/xbb-bootstrap-4.0.0/darwin-x64/install/xbb-bootstrap/bin/autoheader line 45.
     # BEGIN failed--compilation aborted at /Users/ilg/Work/xbb-bootstrap-4.0.0/darwin-x64/install/xbb-bootstrap/bin/autoheader line 45.
-    # run_app "${TEST_PATH}/bin/autoheader" --version
+    # run_app "${test_bin_folder_path}/autoheader" --version
 
-    # run_app "${TEST_PATH}/bin/autoscan" --version
-    # run_app "${TEST_PATH}/bin/autoupdate" --version
+    # run_app "${test_bin_folder_path}/autoscan" --version
+    # run_app "${test_bin_folder_path}/autoupdate" --version
 
     # No ELFs, only scripts.
   )
@@ -2636,8 +2877,11 @@ function build_automake()
   # https://www.gnu.org/software/automake/
   # https://ftp.gnu.org/gnu/automake/
 
+  # https://github.com/archlinux/svntogit-packages/tree/packages/automake/trunk
   # https://archlinuxarm.org/packages/any/automake/files/PKGBUILD
   # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=automake-git
+
+  # https://github.com/Homebrew/homebrew-core/blob/master/Formula/automake.rb
 
   # 2015-01-05, "1.15"
   # 2018-02-25, "1.16"
@@ -2681,7 +2925,8 @@ function build_automake()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -2734,8 +2979,12 @@ function build_automake()
         # Build.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         # Takes too long and some tests fail.
         # XFAIL: t/pm/Cond2.pl
@@ -2754,7 +3003,7 @@ function build_automake()
     )
 
     (
-      test_automake
+      test_automake "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${automake_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -2765,18 +3014,18 @@ function build_automake()
     echo "Component automake already installed."
   fi
 
-  test_functions+=("test_automake")
+  tests_add "test_automake" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_automake()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Testing if automake scripts start properly..."
 
-    run_app "${TEST_PATH}/bin/automake" --version
+    run_app "${test_bin_folder_path}/automake" --version
   )
 }
 
@@ -2787,8 +3036,11 @@ function build_patch()
   # https://www.gnu.org/software/patch/
   # https://ftp.gnu.org/gnu/patch/
 
+  # https://github.com/archlinux/svntogit-packages/blob/packages/patch/trunk/PKGBUILD
   # https://archlinuxarm.org/packages/aarch64/patch/files/PKGBUILD
   # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=patch-git
+
+  # https://github.com/Homebrew/homebrew-core/blob/master/Formula/gpatch.rb
 
   # 2015-03-06, "2.7.5"
   # 2018-02-06, "2.7.6" (latest)
@@ -2823,7 +3075,8 @@ function build_patch()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -2862,6 +3115,13 @@ function build_patch()
           config_options+=("--host=${HOST}")
           config_options+=("--target=${TARGET}")
 
+          config_options+=("--disable-debug") # HB
+          config_options+=("--disable-dependency-tracking") # HB
+          if [ "${IS_DEVELOP}" == "y" ]
+          then
+            config_options+=("--disable-silent-rules") # HB
+          fi
+
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${patch_src_folder_name}/configure" \
             "${config_options[@]}"
 
@@ -2876,8 +3136,12 @@ function build_patch()
         # Build.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install-exec
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         if [ "${WITH_TESTS}" == "y" ]
         then
@@ -2892,7 +3156,7 @@ function build_patch()
     )
 
     (
-      test_patch
+      test_patch "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${patch_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -2903,23 +3167,23 @@ function build_patch()
     echo "Component patch already installed."
   fi
 
-  test_functions+=("test_patch")
+  tests_add "test_patch" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_patch()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Checking the patch binaries shared libraries..."
 
-    show_libs "${TEST_PATH}/bin/patch"
+    show_libs "${test_bin_folder_path}/patch"
 
     echo
     echo "Testing if patch binaries start properly..."
 
-    run_app "${TEST_PATH}/bin/patch" --version
+    run_app "${test_bin_folder_path}/patch" --version
   )
 }
 
@@ -2930,8 +3194,11 @@ function build_diffutils()
   # https://www.gnu.org/software/diffutils/
   # https://ftp.gnu.org/gnu/diffutils/
 
+  # https://github.com/archlinux/svntogit-packages/blob/packages/diffutils/trunk/PKGBUILD
   # https://archlinuxarm.org/packages/aarch64/diffutils/files/PKGBUILD
   # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=diffutils-git
+
+  # https://github.com/Homebrew/homebrew-core/blob/master/Formula/diffutils.rb
 
   # 2017-05-21, "3.6"
   # 2018-12-31, "3.7"
@@ -2974,7 +3241,8 @@ function build_diffutils()
         CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
       fi
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -3013,6 +3281,15 @@ function build_diffutils()
           config_options+=("--host=${HOST}")
           config_options+=("--target=${TARGET}")
 
+          config_options+=("--disable-debug") # HB
+          config_options+=("--disable-dependency-tracking") # HB
+          if [ "${IS_DEVELOP}" == "y" ]
+          then
+            config_options+=("--disable-silent-rules") # HB
+          fi
+
+          config_options+=("--disable-nls")
+
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${diffutils_src_folder_name}/configure" \
             "${config_options[@]}"
 
@@ -3027,8 +3304,12 @@ function build_diffutils()
         # Build.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install-exec
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         if [ "${WITH_TESTS}" == "y" ]
         then
@@ -3044,7 +3325,7 @@ function build_diffutils()
     )
 
     (
-      test_diffutils
+      test_diffutils "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${diffutils_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -3055,29 +3336,29 @@ function build_diffutils()
     echo "Component diffutils already installed."
   fi
 
-  test_functions+=("test_diffutils")
+  tests_add "test_diffutils" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_diffutils()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Checking the diffutils binaries shared libraries..."
 
-    show_libs "${TEST_PATH}/bin/diff"
-    show_libs "${TEST_PATH}/bin/cmp"
-    show_libs "${TEST_PATH}/bin/diff3"
-    show_libs "${TEST_PATH}/bin/sdiff"
+    show_libs "${test_bin_folder_path}/diff"
+    show_libs "${test_bin_folder_path}/cmp"
+    show_libs "${test_bin_folder_path}/diff3"
+    show_libs "${test_bin_folder_path}/sdiff"
 
     echo
     echo "Testing if diffutils binaries start properly..."
 
-    run_app "${TEST_PATH}/bin/diff" --version
-    run_app "${TEST_PATH}/bin/cmp" --version
-    run_app "${TEST_PATH}/bin/diff3" --version
-    run_app "${TEST_PATH}/bin/sdiff" --version
+    run_app "${test_bin_folder_path}/diff" --version
+    run_app "${test_bin_folder_path}/cmp" --version
+    run_app "${test_bin_folder_path}/diff3" --version
+    run_app "${test_bin_folder_path}/sdiff" --version
   )
 }
 
@@ -3088,8 +3369,11 @@ function build_bison()
   # https://www.gnu.org/software/bison/
   # https://ftp.gnu.org/gnu/bison/
 
+  # https://github.com/archlinux/svntogit-packages/blob/packages/bison/trunk/PKGBUILD
   # https://archlinuxarm.org/packages/aarch64/bison/files/PKGBUILD
   # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=bison-git
+
+  # https://github.com/Homebrew/homebrew-core/blob/master/Formula/bison.rb
 
   # 2015-01-23, "3.0.4"
   # 2019-02-03, "3.3.2", Crashes with Abort trap 6.
@@ -3128,7 +3412,8 @@ function build_bison()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -3173,6 +3458,17 @@ function build_bison()
           config_options+=("--host=${HOST}")
           config_options+=("--target=${TARGET}")
 
+          config_options+=("--disable-debug") # HB
+          config_options+=("--disable-dependency-tracking") # HB
+          if [ "${IS_DEVELOP}" == "y" ]
+          then
+            config_options+=("--disable-silent-rules") # HB
+          fi
+
+          config_options+=("--disable-nls")
+
+          config_options+=("--enable-relocatable") # HB
+
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${bison_src_folder_name}/configure" \
             "${config_options[@]}"
 
@@ -3187,8 +3483,12 @@ function build_bison()
         # Build.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install-exec
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         # Takes too long.
         if false # [ "${RUN_LONG_TESTS}" == "y" ]
@@ -3205,7 +3505,7 @@ function build_bison()
     )
 
     (
-      test_bison
+      test_bison "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${bison_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -3216,25 +3516,60 @@ function build_bison()
     echo "Component bison already installed."
   fi
 
-  test_functions+=("test_bison")
+  tests_add "test_bison" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_bison()
 {
+  local test_bin_folder_path="$1"
+
   (
     # xbb_activate_installed_bin
 
     echo
     echo "Checking the bison binaries shared libraries..."
 
-    show_libs "${TEST_PATH}/bin/bison"
+    show_libs "${test_bin_folder_path}/bison"
     # yacc is a script.
 
     echo
     echo "Testing if bison binaries start properly..."
 
-    run_app "${TEST_PATH}/bin/bison" --version
-    run_app "${TEST_PATH}/bin/yacc" --version
+    run_app "${test_bin_folder_path}/bison" --version
+    run_app "${test_bin_folder_path}/yacc" --version
+
+    rm -rf "${TESTS_FOLDER_PATH}/bison"
+    mkdir -pv "${TESTS_FOLDER_PATH}/bison"; cd "${TESTS_FOLDER_PATH}/bison"
+
+      # Note: __EOF__ is quoted to prevent substitutions here.
+      cat <<'__EOF__' > test.y
+%{ #include <iostream>
+    using namespace std;
+    extern void yyerror (char *s);
+    extern int yylex ();
+%}
+%start prog
+%%
+prog:  //  empty
+    |  prog expr '\n' { cout << "pass"; exit(0); }
+    ;
+expr: '(' ')'
+    | '(' expr ')'
+    |  expr expr
+    ;
+%%
+char c;
+void yyerror (char *s) { cout << "fail"; exit(0); }
+int yylex () { cin.get(c); return c; }
+int main() { yyparse(); }
+__EOF__
+
+    run_app "${test_bin_folder_path}/bison" test.y -Wno-conflicts-sr
+    run_verbose g++ test.tab.c -o test -w
+
+    test_expect "pass" "bash" "-c" "(echo '((()(())))()' | ./test)"
+    test_expect "fail" "bash" "-c" "(echo '())' | ./test)"
+
   )
 }
 
@@ -3245,6 +3580,7 @@ function build_make()
   # https://www.gnu.org/software/make/
   # https://ftp.gnu.org/gnu/make/
 
+  # https://github.com/archlinux/svntogit-packages/blob/packages/make/trunk/PKGBUILD
   # https://archlinuxarm.org/packages/aarch64/make/files/PKGBUILD
   # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=make-git
 
@@ -3290,7 +3626,8 @@ function build_make()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -3331,6 +3668,15 @@ function build_make()
 
           config_options+=("--program-prefix=g")
 
+          config_options+=("--disable-debug") # HB
+          config_options+=("--disable-dependency-tracking") # HB
+          if [ "${IS_DEVELOP}" == "y" ]
+          then
+            config_options+=("--disable-silent-rules") # HB
+          fi
+
+          config_options+=("--disable-nls")
+
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${make_src_folder_name}/configure" \
             "${config_options[@]}"
 
@@ -3345,8 +3691,12 @@ function build_make()
         # Build.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install-exec
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         (
           echo
@@ -3372,7 +3722,7 @@ function build_make()
     )
 
     (
-      test_make
+      test_make "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${make_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -3383,23 +3733,25 @@ function build_make()
     echo "Component make already installed."
   fi
 
-  test_functions+=("test_make")
+  tests_add "test_make" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_make()
 {
+  local test_bin_folder_path="$1"
+
   (
     # xbb_activate_installed_bin
 
     echo
     echo "Checking the make binaries shared libraries..."
 
-    show_libs "${TEST_PATH}/bin/gmake"
+    show_libs "${test_bin_folder_path}/gmake"
 
     echo
     echo "Testing if make binaries start properly..."
 
-    run_app "${TEST_PATH}/bin/gmake" --version
+    run_app "${test_bin_folder_path}/gmake" --version
   )
 }
 
@@ -3411,7 +3763,10 @@ function build_bash()
   # https://ftp.gnu.org/gnu/bash/
   # https://ftp.gnu.org/gnu/bash/bash-5.0.tar.gz
 
+  # https://github.com/archlinux/svntogit-packages/blob/packages/bash/trunk/PKGBUILD
   # https://archlinuxarm.org/packages/aarch64/bash/files/PKGBUILD
+
+  # https://github.com/Homebrew/homebrew-core/blob/master/Formula/bash.rb
 
   # 2018-01-30, "4.4.18"
   # 2019-01-07, "5.0"
@@ -3448,7 +3803,8 @@ function build_bash()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -3487,10 +3843,13 @@ function build_bash()
           config_options+=("--host=${HOST}")
           config_options+=("--target=${TARGET}")
 
-          config_options+=("--with-curses")
-          config_options+=("--with-installed-readline")
-          config_options+=("--enable-readline")
-          config_options+=("--disable-rpath")
+          config_options+=("--without-bash-malloc") # Arch
+          config_options+=("--with-curses") # Arch
+          config_options+=("--with-installed-readline") # Arch
+
+          config_options+=("--enable-readline") # Arch
+
+          config_options+=("--disable-nls")
 
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${bash_src_folder_name}/configure" \
             "${config_options[@]}"
@@ -3506,8 +3865,12 @@ function build_bash()
         # Build.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         if false # [ "${RUN_LONG_TESTS}" == "y" ]
         then
@@ -3522,7 +3885,7 @@ function build_bash()
     )
 
     (
-      test_bash
+      test_bash "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${bash_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -3533,28 +3896,28 @@ function build_bash()
     echo "Component bash already installed."
   fi
 
-  test_functions+=("test_bash")
+  tests_add "test_bash" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_bash()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Checking the bash binaries shared libraries..."
 
-    show_libs "${TEST_PATH}/bin/bash"
+    show_libs "${test_bin_folder_path}/bash"
 
     echo
     echo "Testing if bash binaries start properly..."
 
-    run_app "${TEST_PATH}/bin/bash" --version
+    run_app "${test_bin_folder_path}/bash" --version
 
     echo
     echo "Testing if bash binaries display help..."
 
-    run_app "${TEST_PATH}/bin/bash" --help
+    run_app "${test_bin_folder_path}/bash" --help
   )
 }
 
@@ -3565,9 +3928,12 @@ function build_wget()
   # https://www.gnu.org/software/wget/
   # https://ftp.gnu.org/gnu/wget/
 
+  # https://github.com/archlinux/svntogit-packages/blob/packages/wget/trunk/PKGBUILD
   # https://archlinuxarm.org/packages/aarch64/wget/files/PKGBUILD
   # https://git.archlinux.org/svntogit/packages.git/tree/trunk/PKGBUILD?h=packages/wget
   # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=wget-git
+
+  # https://github.com/Homebrew/homebrew-core/blob/master/Formula/wget.rb
 
   # 2016-06-10, "1.19"
   # 2018-12-26, "1.20.1"
@@ -3609,7 +3975,8 @@ function build_wget()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -3651,14 +4018,25 @@ function build_wget()
           config_options+=("--host=${HOST}")
           config_options+=("--target=${TARGET}")
 
-          config_options+=("--with-ssl=gnutls")
-          config_options+=("--with-metalink")
-          config_options+=("--without-libpsl")
+          # config_options+=("--with-ssl=openssl") # HB
+          config_options+=("--with-ssl=gnutls") # Arch
 
-          config_options+=("--enable-nls")
-          config_options+=("--disable-debug")
-          config_options+=("--disable-pcre")
-          config_options+=("--disable-pcre2")
+          config_options+=("--with-metalink")
+          config_options+=("--without-libpsl") # HB
+
+          # config_options+=("--without-included-regex") # HB
+
+          config_options+=("--disable-pcre") # HB
+          config_options+=("--disable-pcre2") # HB
+
+          config_options+=("--disable-debug") # HB
+          config_options+=("--disable-dependency-tracking") # HB
+          if [ "${IS_DEVELOP}" == "y" ]
+          then
+            config_options+=("--disable-silent-rules") # HB
+          fi
+
+          config_options+=("--disable-nls")
 
           # libpsl is not available anyway.
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${wget_src_folder_name}/configure" \
@@ -3675,8 +4053,12 @@ function build_wget()
         # Build.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install-exec
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         # Fails
         # x86_64: FAIL:  65
@@ -3691,7 +4073,7 @@ function build_wget()
     )
 
     (
-      test_wget
+      test_wget "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${wget_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -3702,23 +4084,31 @@ function build_wget()
     echo "Component wget already installed."
   fi
 
-  test_functions+=("test_wget")
+  tests_add "test_wget" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_wget()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Checking the wget binaries shared libraries..."
 
-    show_libs "${TEST_PATH}/bin/wget"
+    show_libs "${test_bin_folder_path}/wget"
 
     echo
     echo "Testing if wget binaries start properly..."
 
-    run_app "${TEST_PATH}/bin/wget" --version
+    run_app "${test_bin_folder_path}/wget" --version
+
+    rm -rf "${TESTS_FOLDER_PATH}/wget"
+    mkdir -pv "${TESTS_FOLDER_PATH}/wget"; cd "${TESTS_FOLDER_PATH}/wget"
+
+    run_app "${test_bin_folder_path}/wget" \
+      -O test-output.md \
+      https://github.com/xpack-dev-tools/.github/raw/master/README.md \
+
   )
 }
 
@@ -3729,8 +4119,11 @@ function build_texinfo()
   # https://www.gnu.org/software/texinfo/
   # https://ftp.gnu.org/gnu/texinfo/
 
+  # https://github.com/archlinux/svntogit-packages/blob/packages/texinfo/trunk/PKGBUILD
   # https://archlinuxarm.org/packages/aarch64/texinfo/files/PKGBUILD
   # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=texinfo-svn
+
+  # https://github.com/Homebrew/homebrew-core/blob/master/Formula/texinfo.rb
 
   # 2017-09-12, "6.5"
   # 2019-02-16, "6.6"
@@ -3767,7 +4160,8 @@ function build_texinfo()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -3806,6 +4200,17 @@ function build_texinfo()
           config_options+=("--host=${HOST}")
           config_options+=("--target=${TARGET}")
 
+          config_options+=("--disable-debug") # HB
+          config_options+=("--disable-dependency-tracking") # HB
+          if [ "${IS_DEVELOP}" == "y" ]
+          then
+            config_options+=("--disable-silent-rules") # HB
+          fi
+
+          config_options+=("--disable-install-warnings") # HB
+
+          config_options+=("--disable-nls")
+
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${texinfo_src_folder_name}/configure" \
             "${config_options[@]}"
 
@@ -3820,8 +4225,12 @@ function build_texinfo()
         # Build.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         # Darwin: FAIL: t/94htmlxref.t 11 - htmlxref errors file_html
         # Darwin: ERROR: t/94htmlxref.t - exited with status 2
@@ -3844,7 +4253,7 @@ function build_texinfo()
     )
 
     (
-      test_texinfo
+      test_texinfo "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${texinfo_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -3855,18 +4264,18 @@ function build_texinfo()
     echo "Component texinfo already installed."
   fi
 
-  test_functions+=("test_texinfo")
+  tests_add "test_texinfo" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_texinfo()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Testing if texinfo scripts start properly..."
 
-    run_app "${TEST_PATH}/bin/texi2pdf" --version
+    run_app "${test_bin_folder_path}/texi2pdf" --version
 
     # No ELFs, it is a script.
   )
@@ -3880,7 +4289,10 @@ function build_dos2unix()
   # http://dos2unix.sourceforge.net
   # https://waterlan.home.xs4all.nl/dos2unix/dos2unix-7.4.0.tar.
 
+  # https://github.com/archlinux/svntogit-community/blob/packages/dos2unix/trunk/PKGBUILD
   # https://archlinuxarm.org/packages/aarch64/dos2unix/files/PKGBUILD
+
+  # https://github.com/Homebrew/homebrew-core/blob/master/Formula/dos2unix.rb
 
   # 30-Oct-2017, "7.4.0"
   # 2019-09-24, "7.4.1"
@@ -3927,7 +4339,8 @@ function build_dos2unix()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -3950,7 +4363,7 @@ function build_dos2unix()
         # Build.
         run_verbose make -j ${JOBS} prefix="${BINS_INSTALL_FOLDER_PATH}" ENABLE_NLS=
 
-        run_verbose make prefix="${BINS_INSTALL_FOLDER_PATH}" install
+        run_verbose make prefix="${BINS_INSTALL_FOLDER_PATH}" install # No strip.
 
         if [ "${WITH_TESTS}" == "y" ]
         then
@@ -3976,7 +4389,7 @@ function build_dos2unix()
     )
 
     (
-      test_dos2unix
+      test_dos2unix "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${dos2unix_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -3987,25 +4400,27 @@ function build_dos2unix()
     echo "Component dos2unix already installed."
   fi
 
-  test_functions+=("test_dos2unix")
+  tests_add "test_dos2unix" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_dos2unix()
 {
+  local test_bin_folder_path="$1"
+
   (
     # xbb_activate_installed_bin
 
     echo
     echo "Checking the dos2unix binaries shared libraries..."
 
-    show_libs "${TEST_PATH}/bin/unix2dos"
-    show_libs "${TEST_PATH}/bin/dos2unix"
+    show_libs "${test_bin_folder_path}/unix2dos"
+    show_libs "${test_bin_folder_path}/dos2unix"
 
     echo
     echo "Testing if dos2unix binaries start properly..."
 
-    run_app "${TEST_PATH}/bin/unix2dos" --version
-    run_app "${TEST_PATH}/bin/dos2unix" --version
+    run_app "${test_bin_folder_path}/unix2dos" --version
+    run_app "${test_bin_folder_path}/dos2unix" --version
   )
 }
 
@@ -4088,7 +4503,8 @@ function build_flex()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -4127,6 +4543,17 @@ function build_flex()
           config_options+=("--host=${HOST}")
           config_options+=("--target=${TARGET}")
 
+          config_options+=("--enable-shared") # HB
+
+          config_options+=("--disable-debug") # HB
+          config_options+=("--disable-dependency-tracking") # HB
+          if [ "${IS_DEVELOP}" == "y" ]
+          then
+            config_options+=("--disable-silent-rules") # HB
+          fi
+
+          config_options+=("--disable-nls")
+
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${flex_src_folder_name}/configure" \
             "${config_options[@]}"
 
@@ -4141,8 +4568,12 @@ function build_flex()
         # Build.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         if [ "${WITH_TESTS}" == "y" ]
         then
@@ -4164,7 +4595,7 @@ function build_flex()
     )
 
     (
-      test_flex
+      test_flex "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${flex_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -4175,24 +4606,50 @@ function build_flex()
     echo "Component flex already installed."
   fi
 
-  test_functions+=("test_flex")
+  tests_add "test_flex" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_flex()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Checking the flex shared libraries..."
 
-    show_libs "${TEST_PATH}/bin/flex"
+    show_libs "${test_bin_folder_path}/flex"
     show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/libfl.${SHLIB_EXT})"
 
     echo
     echo "Testing if flex binaries start properly..."
 
-    run_app "${TEST_PATH}/bin/flex" --version
+    run_app "${test_bin_folder_path}/flex" --version
+
+    rm -rf "${TESTS_FOLDER_PATH}/flex"
+    mkdir -pv "${TESTS_FOLDER_PATH}/flex"; cd "${TESTS_FOLDER_PATH}/flex"
+
+    # Note: __EOF__ is quoted to prevent substitutions here.
+    cat <<'__EOF__' >test.flex
+CHAR   [a-z][A-Z]
+%%
+{CHAR}+      printf("%s", yytext);
+[ \t\n]+   printf("\n");
+%%
+int main()
+{
+  yyin = stdin;
+  yylex();
+}
+__EOF__
+
+      run_app "${test_bin_folder_path}/flex" test.flex
+
+      if [ ! -z ${LIBS_INSTALL_FOLDER_PATH+x} ]
+      then
+        run_app gcc lex.yy.c -L"${LIBS_INSTALL_FOLDER_PATH}/lib" -lfl -o test
+
+        echo "Hello World" | ./test
+      fi
   )
 }
 
@@ -4203,6 +4660,7 @@ function build_perl()
   # https://www.cpan.org
   # http://www.cpan.org/src/
 
+  # https://github.com/archlinux/svntogit-packages/blob/packages/perl/trunk/PKGBUILD
   # https://archlinuxarm.org/packages/aarch64/perl/files/PKGBUILD
   # https://git.archlinux.org/svntogit/packages.git/tree/trunk/PKGBUILD?h=packages/perl
 
@@ -4264,7 +4722,8 @@ function build_perl()
       CFLAGS="${XBB_CPPFLAGS} ${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CPPFLAGS} ${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -4323,8 +4782,12 @@ function build_perl()
         # Build.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         # Takes very, very long, and some fail.
         if false # [ "${RUN_LONG_TESTS}" == "y" ]
@@ -4372,7 +4835,7 @@ function build_perl()
     )
 
     (
-      test_perl
+      test_perl "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${perl_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -4383,18 +4846,18 @@ function build_perl()
     echo "Component perl already installed."
   fi
 
-  test_functions+=("test_perl")
+  tests_add "test_perl" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_perl()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Checking the perl binaries shared libraries..."
 
-    show_libs "${TEST_PATH}/bin/perl"
+    show_libs "${test_bin_folder_path}/perl"
 
     echo
     echo "Testing if perl binaries start properly..."
@@ -4407,8 +4870,14 @@ function test_perl()
         : # export LD_LIBRARY_PATH="${XBB_LIBRARY_PATH}"
       fi
 
-      run_app "${TEST_PATH}/bin/perl" --version
+      run_app "${test_bin_folder_path}/perl" --version
     )
+
+    rm -rf "${TESTS_FOLDER_PATH}/perl"
+    mkdir -pv "${TESTS_FOLDER_PATH}/perl"; cd "${TESTS_FOLDER_PATH}/perl"
+
+    echo "print 'Hello Perl';" >test.pl
+    test_expect "Hello Perl" "${test_bin_folder_path}/perl"  test.pl
   )
 }
 
@@ -4417,18 +4886,20 @@ function test_perl()
 function build_tcl()
 {
   # https://www.tcl.tk/
-  # https://www.tcl.tk/software/tcltk/download.html
+  # https://sourceforge.net/projects/tcl/files/Tcl/
   # https://www.tcl.tk/doc/howto/compile.html
 
   # https://prdownloads.sourceforge.net/tcl/tcl8.6.10-src.tar.gz
   # https://sourceforge.net/projects/tcl/files/Tcl/8.6.10/tcl8.6.10-src.tar.gz/download
+
+  # https://github.com/archlinux/svntogit-packages/blob/packages/tcl/trunk/PKGBUILD
   # https://archlinuxarm.org/packages/aarch64/tcl/files/PKGBUILD
 
   # https://github.com/Homebrew/homebrew-core/blob/master/Formula/tcl-tk.rb
 
   # 2019-11-21, "8.6.10"
-  # ? "8.6.11"
-  # ? "8.6.12"
+  # 2021-01-02, "8.6.11"
+  # 2021-11-05, "8.6.12"
 
   local tcl_version="$1"
 
@@ -4463,7 +4934,8 @@ function build_tcl()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -4505,7 +4977,10 @@ function build_tcl()
             fi
 
             config_options+=("--enable-threads")
-            config_options+=("--enable-64bit")
+            if [ "${TARGET_BITS}" == "64" ]
+            then
+              config_options+=("--enable-64bit")
+            fi
 
             run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${tcl_src_folder_name}/unix/configure" \
               "${config_options[@]}"
@@ -4533,8 +5008,8 @@ fi
                 "${SOURCES_FOLDER_PATH}/${tcl_src_folder_name}/macosx/configure"
             fi
 
-            config_options+=("--enable-threads")
-            config_options+=("--enable-64bit")
+            config_options+=("--enable-threads") # HB
+            config_options+=("--enable-64bit") # HB
 
             run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${tcl_src_folder_name}/macosx/configure" \
               "${config_options[@]}"
@@ -4552,8 +5027,13 @@ fi
         # Build.
         run_verbose make -j 1 # ${JOBS}
 
-        # make install-strip
-        run_verbose make install
+        # strip: /Host/home/ilg/Work/xbb-bootstrap-4.0.0/linux-x64/install/xbb-bootstrap/bin/_inst.15581_: file format not recognized
+        if false # [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         if false # [ "${RUN_LONG_TESTS}" == "y" ]
         then
@@ -4568,7 +5048,8 @@ fi
     )
 
     (
-      test_tcl
+      test_tcl_libs
+      test_tcl "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${tcl_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -4579,18 +5060,15 @@ fi
     echo "Component tcl already installed."
   fi
 
-  test_functions+=("test_tcl")
+  tests_add "test_tcl" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
-function test_tcl()
+function test_tcl_libs()
 {
   (
-    # xbb_activate_installed_bin
-
     echo
     echo "Checking the tcl binaries shared libraries..."
 
-    show_libs "${TEST_PATH}/bin/tclsh${TCL_VERSION_MAJOR}.${TCL_VERSION_MINOR}"
     if [ "${TARGET_PLATFORM}" == "linux" ]
     then
       show_libs "$(find ${LIBS_INSTALL_FOLDER_PATH}/lib/thread* -name 'libthread*.so')"
@@ -4613,11 +5091,21 @@ function test_tcl()
       echo "Unknown platform."
       exit 1
     fi
+  )
+}
+
+function test_tcl()
+{
+  local test_bin_folder_path="$1"
+
+  (
+
+    show_libs "${test_bin_folder_path}/tclsh"*
 
     echo
     echo "Testing if tcl binaries start properly..."
 
-    run_app "${TEST_PATH}/bin/tclsh${TCL_VERSION_MAJOR}.${TCL_VERSION_MINOR}" <<< 'puts [info patchlevel]'
+    run_app "${test_bin_folder_path}/tclsh"* <<< 'puts [info patchlevel]'
   )
 }
 
@@ -4684,7 +5172,8 @@ function build_git()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -4745,8 +5234,12 @@ function build_git()
         # Build.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         # Tests are quite complicated
 
@@ -4758,7 +5251,7 @@ function build_git()
     )
 
     (
-      test_git
+      test_git "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${git_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -4769,26 +5262,28 @@ function build_git()
     echo "Component git already installed."
   fi
 
-  test_functions+=("test_git")
+  tests_add "test_git" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_git()
 {
+  local test_bin_folder_path="$1"
+
   (
     # xbb_activate_installed_bin
 
     echo
     echo "Checking the git binaries shared libraries..."
 
-    show_libs "${TEST_PATH}/bin/git"
+    show_libs "${test_bin_folder_path}/git"
 
     echo
     echo "Testing if git binaries start properly..."
 
-    run_app "${TEST_PATH}/bin/git" --version
+    run_app "${test_bin_folder_path}/git" --version
 
     rm -rf content.git
-    run_app "${TEST_PATH}/bin/git" clone \
+    run_app "${test_bin_folder_path}/git" clone \
       https://github.com/xpack-dev-tools/.github.git \
       .github.git
   )
@@ -4798,10 +5293,15 @@ function test_git()
 
 function build_p7zip()
 {
+  # For future versions use the fork:
+  # https://github.com/jinfeihan57/p7zip
+
   # https://sourceforge.net/projects/p7zip/files/p7zip
   # https://sourceforge.net/projects/p7zip/files/p7zip/16.02/p7zip_16.02_src_all.tar.bz2/download
 
-  # https://archlinuxarm.org/packages/aarch64/p7zip/files/PKGBUILD
+  # https://github.com/archlinux/svntogit-packages/blob/packages/p7zip/trunk/PKGBUILD
+
+  # https://github.com/Homebrew/homebrew-core/blob/master/Formula/p7zip.rb
 
   # 2016-07-14, "16.02" (latest)
 
@@ -4850,7 +5350,8 @@ function build_p7zip()
       CFLAGS="${XBB_CFLAGS_NO_W} -std=c99"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W} -std=c++11"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -4910,7 +5411,7 @@ function build_p7zip()
       "${p7zip_folder_name}"
 
     (
-      test_p7zip
+      test_p7zip "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${p7zip_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -4921,23 +5422,30 @@ function build_p7zip()
     echo "Component p7zip already installed."
   fi
 
-  test_functions+=("test_p7zip")
+  tests_add "test_p7zip" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_p7zip()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Checking the 7za shared libraries..."
 
-    if [ -f "${TEST_PATH}/bin/7za" ]
+    if [ -f "${test_bin_folder_path}/7za" ]
     then
-      show_libs "${TEST_PATH}/bin/7za"
+      show_libs "${test_bin_folder_path}/7za"
     fi
 
-    if [ -f "${TEST_PATH}/bin/7z" ]
+    if [ -f "${test_bin_folder_path}/7z" ]
+    then
+      show_libs "${test_bin_folder_path}/7z"
+    fi
+
+  if false
+  then
+    if [ -f "${test_bin_folder_path}/7z" ]
     then
       show_libs "${TEST_PATH}/lib/p7zip/7z"
     fi
@@ -4954,20 +5462,16 @@ function test_p7zip()
     then
       show_libs "${TEST_PATH}/lib/p7zip/7zr"
     fi
-
-    if [ -f "${LIBS_INSTALL_FOLDER_PATH}/lib/p7zip/7z.${SHLIB_EXT}" ]
-    then
-      show_libs "${LIBS_INSTALL_FOLDER_PATH}/lib/p7zip/7z.${SHLIB_EXT}"
-    fi
+  fi
 
     echo
     echo "Testing if 7za binaries start properly..."
 
-    run_app "${TEST_PATH}/bin/7za" --help
+    run_app "${test_bin_folder_path}/7za" --help
 
-    if [ -f "${TEST_PATH}/bin/7z" ]
+    if [ -f "${test_bin_folder_path}/7z" ]
     then
-      run_app "${TEST_PATH}/bin/7z" --help
+      run_app "${test_bin_folder_path}/7z" --help
     fi
   )
 }
@@ -4980,7 +5484,10 @@ function build_rhash()
   # https://github.com/rhash/RHash/releases
   # https://github.com/rhash/RHash/archive/v1.3.9.tar.gz
 
+  # https://github.com/archlinux/svntogit-packages/blob/packages/rhash/trunk/PKGBUILD
   # https://archlinuxarm.org/packages/aarch64/rhash/files/PKGBUILD
+
+  # https://github.com/Homebrew/homebrew-core/blob/master/Formula/rhash.rb
 
   # 14 Dec 2019, "1.3.9"
   # Jan 7, 2021, "1.4.1"
@@ -5027,7 +5534,8 @@ function build_rhash()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -5087,7 +5595,7 @@ function build_rhash()
         # Build.
         run_verbose make -j ${JOBS}
 
-        run_verbose make install
+        run_verbose make install # strip not available.
 
         if [ "${WITH_TESTS}" == "y" ]
         then
@@ -5102,7 +5610,9 @@ function build_rhash()
     )
 
     (
-      test_rhash
+      test_rhash_libs
+
+      test_rhash "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${rhash_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -5113,29 +5623,36 @@ function build_rhash()
     echo "Component rhash already installed."
   fi
 
-  test_functions+=("test_rhash")
+  # tests_add "test_rhash" "${BINS_INSTALL_FOLDER_PATH}/bin"
+}
+
+function test_rhash_libs()
+{
+  echo
+  echo "Checking the flex shared libraries..."
+
+  if [ "${TARGET_PLATFORM}" == "darwin" ]
+  then
+    show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/librhash.0.dylib)"
+  else
+    show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/librhash.so.0)"
+  fi
 }
 
 function test_rhash()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Checking the flex shared libraries..."
 
-    show_libs "${BINS_INSTALL_FOLDER_PATH}/bin/rhash"
-    if [ "${TARGET_PLATFORM}" == "darwin" ]
-    then
-      show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/librhash.0.dylib)"
-    else
-      show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/librhash.so.0)"
-    fi
+    show_libs "${test_bin_folder_path}/rhash"
 
     echo
     echo "Testing if rhash binaries start properly..."
 
-    run_app "${BINS_INSTALL_FOLDER_PATH}/bin/rhash" --version
+    run_app "${test_bin_folder_path}/rhash" --version
   )
 }
 
@@ -5147,7 +5664,10 @@ function build_re2c()
   # https://github.com/skvadrik/re2c/releases
   # https://github.com/skvadrik/re2c/releases/download/1.3/re2c-1.3.tar.xz
 
+  # https://github.com/archlinux/svntogit-packages/blob/packages/re2c/trunk/PKGBUILD
   # https://archlinuxarm.org/packages/aarch64/re2c/files/PKGBUILD
+
+  # https://github.com/Homebrew/homebrew-core/blob/master/Formula/re2c.rb
 
   # 14 Dec 2019, "1.3"
   # Mar 27, 2021, "2.1.1"
@@ -5206,7 +5726,9 @@ function build_re2c()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
+      # Without STATIC all tests fail.
       LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -5245,6 +5767,13 @@ function build_re2c()
           config_options+=("--host=${HOST}")
           config_options+=("--target=${TARGET}")
 
+          config_options+=("--disable-debug") # HB
+          config_options+=("--disable-dependency-tracking") # HB
+          if [ "${IS_DEVELOP}" == "y" ]
+          then
+            config_options+=("--disable-silent-rules") # HB
+          fi
+
           run_verbose bash ${DEBUG} configure \
             "${config_options[@]}"
 
@@ -5259,8 +5788,12 @@ function build_re2c()
         # Build.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         if [ "${WITH_TESTS}" == "y" ]
         then
@@ -5275,7 +5808,7 @@ function build_re2c()
     )
 
     (
-      test_re2c
+      test_re2c "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${re2c_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -5286,23 +5819,48 @@ function build_re2c()
     echo "Component re2c already installed."
   fi
 
-  test_functions+=("test_re2c")
+  tests_add "test_re2c" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_re2c()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Checking the flex shared libraries..."
 
-    show_libs "${TEST_PATH}/bin/re2c"
+    show_libs "${test_bin_folder_path}/re2c"
 
     echo
     echo "Testing if re2c binaries start properly..."
 
-    run_app "${TEST_PATH}/bin/re2c" --version
+    run_app "${test_bin_folder_path}/re2c" --version
+
+    rm -rf "${TESTS_FOLDER_PATH}/re2c"
+    mkdir -pv "${TESTS_FOLDER_PATH}/re2c"; cd "${TESTS_FOLDER_PATH}/re2c"
+
+    # Note: __EOF__ is quoted to prevent substitutions here.
+    cat <<'__EOF__' > test.c
+unsigned int stou (const char * s)
+{
+#   define YYCTYPE char
+    const YYCTYPE * YYCURSOR = s;
+    unsigned int result = 0;
+    for (;;)
+    {
+        /*!re2c
+            re2c:yyfill:enable = 0;
+            "\x00" { return result; }
+            [0-9]  { result = result * 10 + yych; continue; }
+        */
+    }
+}
+__EOF__
+
+    run_app "${test_bin_folder_path}/re2c" -is -o test-out.c test.c
+
+    run_verbose gcc -c test-out.c
   )
 }
 
@@ -5314,7 +5872,10 @@ function build_gnupg()
   # https://www.gnupg.org
   # https://www.gnupg.org/ftp/gcrypt/gnupg/gnupg-2.2.19.tar.bz2
 
+  # https://github.com/archlinux/svntogit-packages/blob/packages/gnupg/trunk/PKGBUILD
   # https://archlinuxarm.org/packages/aarch64/gnupg/files/PKGBUILD
+
+  # https://github.com/Homebrew/homebrew-core/blob/master/Formula/gnupg.rb
 
   # 2021-06-10, "2.2.28"
   # 2021-04-20, "2.3.1" fails on macOS
@@ -5350,7 +5911,8 @@ function build_gnupg()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -5396,11 +5958,24 @@ function build_gnupg()
           config_options+=("--with-ksba-prefix=${LIBS_INSTALL_FOLDER_PATH}")
           config_options+=("--with-npth-prefix=${LIBS_INSTALL_FOLDER_PATH}")
 
+          # config_options+=("--enable-maintainer-mode") # Arch
+          config_options+=("--disable-maintainer-mode")
+
+          config_options+=("--enable-symcryptrun")
+
+          # config_options+=("--enable-all-tests") # HB
+
           # On macOS Arm, it fails to load libbz2.1.0.8.dylib
           config_options+=("--disable-bzip2")
 
-          config_options+=("--enable-maintainer-mode")
-          config_options+=("--enable-symcryptrun")
+          config_options+=("--disable-debug") # HB
+          config_options+=("--disable-dependency-tracking") # HB
+          if [ "${IS_DEVELOP}" == "y" ]
+          then
+            config_options+=("--disable-silent-rules") # HB
+          fi
+
+          config_options+=("--disable-nls")
 
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${gnupg_src_folder_name}/configure" \
             "${config_options[@]}"
@@ -5416,8 +5991,12 @@ function build_gnupg()
         # Build.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         if [ "${WITH_TESTS}" == "y" ]
         then
@@ -5441,7 +6020,7 @@ function build_gnupg()
     )
 
     (
-      test_gpg
+      test_gpg "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${gnupg_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -5452,43 +6031,45 @@ function build_gnupg()
     echo "Component gnupg already installed."
   fi
 
-  test_functions+=("test_gpg")
+  tests_add "test_gpg" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_gpg()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Checking the gpg binaries shared libraries..."
 
-    show_libs "${BINS_INSTALL_FOLDER_PATH}/bin/gpg"
+    show_libs "${test_bin_folder_path}/gpg"
 
     echo
     echo "Testing if gpg binaries start properly..."
 
-    run_app "${BINS_INSTALL_FOLDER_PATH}/bin/gpg" --version
-    run_app "${BINS_INSTALL_FOLDER_PATH}/bin/gpgv" --version
-    run_app "${BINS_INSTALL_FOLDER_PATH}/bin/gpgsm" --version
-    run_app "${BINS_INSTALL_FOLDER_PATH}/bin/gpg-agent" --version
+    run_app "${test_bin_folder_path}/gpg" --version
+    run_app "${test_bin_folder_path}/gpgv" --version
+    run_app "${test_bin_folder_path}/gpgsm" --version
+    run_app "${test_bin_folder_path}/gpg-agent" --version
 
-    run_app "${BINS_INSTALL_FOLDER_PATH}/bin/kbxutil" --version
+    run_app "${test_bin_folder_path}/kbxutil" --version
 
-    run_app "${BINS_INSTALL_FOLDER_PATH}/bin/gpgconf" --version
-    run_app "${BINS_INSTALL_FOLDER_PATH}/bin/gpg-connect-agent" --version
-    if [ -f "${BINS_INSTALL_FOLDER_PATH}/bin/symcryptrun" ]
+    run_app "${test_bin_folder_path}/gpgconf" --version
+    run_app "${test_bin_folder_path}/gpg-connect-agent" --version
+    if [ -f "${test_bin_folder_path}/symcryptrun" ]
     then
       # clang did not create it.
-      run_app "${BINS_INSTALL_FOLDER_PATH}/bin/symcryptrun" --version
+      run_app "${test_bin_folder_path}/symcryptrun" --version
     fi
-    run_app "${BINS_INSTALL_FOLDER_PATH}/bin/watchgnupg" --version
-    # run_app "${BINS_INSTALL_FOLDER_PATH}/bin/gpgparsemail" --version
-    run_app "${BINS_INSTALL_FOLDER_PATH}/bin/gpg-wks-server" --version
-    run_app "${BINS_INSTALL_FOLDER_PATH}/bin/gpgtar" --version
+    run_app "${test_bin_folder_path}/watchgnupg" --version
+    # run_app "${test_bin_folder_path}/gpgparsemail" --version
+    run_app "${test_bin_folder_path}/gpg-wks-server" --version
+    run_app "${test_bin_folder_path}/gpgtar" --version
 
     # run_app "${BINS_INSTALL_FOLDER_PATH}/sbin/addgnupghome" --version
     # run_app "${BINS_INSTALL_FOLDER_PATH}/sbin/applygnupgdefaults" --version
+
+    # TODO: add functional tests from HomeBrew.
   )
 }
 
@@ -5501,6 +6082,8 @@ function build_makedepend()
   # http://xorg.freedesktop.org/archive/individual/util/makedepend-1.0.5.tar.bz2
 
   # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=makedepend
+
+  # https://github.com/Homebrew/homebrew-core/blob/master/Formula/makedepend.rb
 
   # 2013-07-23, 1.0.5
   # 2019-03-16, 1.0.6
@@ -5535,7 +6118,8 @@ function build_makedepend()
       CFLAGS="${XBB_CFLAGS_NO_W}"
       CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
 
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      # LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
+      LDFLAGS="${XBB_LDFLAGS_APP}"
       if [ "${TARGET_PLATFORM}" == "linux" ]
       then
         LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
@@ -5577,6 +6161,13 @@ function build_makedepend()
           config_options+=("--host=${HOST}")
           config_options+=("--target=${TARGET}")
 
+          config_options+=("--disable-debug") # HB
+          config_options+=("--disable-dependency-tracking") # HB
+          if [ "${IS_DEVELOP}" == "y" ]
+          then
+            config_options+=("--disable-silent-rules") # HB
+          fi
+
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${makedepend_src_folder_name}/configure" \
             "${config_options[@]}"
 
@@ -5591,8 +6182,12 @@ function build_makedepend()
         # Build.
         run_verbose make -j ${JOBS}
 
-        # make install-strip
-        run_verbose make install
+        if [ "${WITH_STRIP}" == "y" ]
+        then
+          run_verbose make install-strip
+        else
+          run_verbose make install
+        fi
 
         if [ "${WITH_TESTS}" == "y" ]
         then
@@ -5607,7 +6202,7 @@ function build_makedepend()
     )
 
     (
-      test_makedepend
+      test_makedepend "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${makedepend_folder_name}/test-output-$(ndate).txt"
 
     hash -r
@@ -5618,1406 +6213,22 @@ function build_makedepend()
     echo "Component makedepend already installed."
   fi
 
-  test_functions+=("test_makedepend")
+  tests_add "test_makedepend" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
 function test_makedepend()
 {
-  (
-    # xbb_activate_installed_bin
+  local test_bin_folder_path="$1"
 
+  (
     echo
     echo "Testing if makedepend binaries start properly..."
 
-    run_app "${BINS_INSTALL_FOLDER_PATH}/bin/makedepend" || true
-  )
-}
-
-# -----------------------------------------------------------------------------
-# mingw-w64
-
-function build_mingw_binutils()
-{
-  # https://ftp.gnu.org/gnu/binutils/
-
-  # https://github.com/archlinux/svntogit-community/blob/packages/mingw-w64-binutils/trunk/PKGBUILD
-  # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=mingw-w64-binutils
-  # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=mingw-w64-binutils-weak
-
-  # 2017-07-24, "2.29"
-  # 2018-07-14, "2.31"
-  # 2019-02-02, "2.32"
-  # 2019-10-12, "2.33.1"
-
-  local mingw_binutils_version="$1"
-
-  local mingw_binutils_src_folder_name="binutils-${mingw_binutils_version}"
-
-  local mingw_binutils_archive="${mingw_binutils_src_folder_name}.tar.xz"
-  local mingw_binutils_url="https://ftp.gnu.org/gnu/binutils/${mingw_binutils_archive}"
-
-  local mingw_binutils_folder_name="mingw-binutils-${mingw_binutils_version}"
-
-  local mingw_binutils_patch_file_path="${helper_folder_path}/patches/binutils-${mingw_binutils_version}.patch"
-  local mingw_binutils_stamp_file_path="${STAMPS_FOLDER_PATH}/stamp-${mingw_binutils_folder_name}-installed"
-  if [ ! -f "${mingw_binutils_stamp_file_path}" ]
-  then
-
-    cd "${SOURCES_FOLDER_PATH}"
-
-    download_and_extract "${mingw_binutils_url}" "${mingw_binutils_archive}" \
-      "${mingw_binutils_src_folder_name}" \
-      "${mingw_binutils_patch_file_path}"
-
-    mkdir -pv "${LOGS_FOLDER_PATH}/${mingw_binutils_folder_name}"
-
-    (
-      mkdir -pv "${BUILD_FOLDER_PATH}/${mingw_binutils_folder_name}"
-      cd "${BUILD_FOLDER_PATH}/${mingw_binutils_folder_name}"
-
-      xbb_activate_installed_dev
-
-      CPPFLAGS="${XBB_CPPFLAGS}"
-      CFLAGS="${XBB_CFLAGS_NO_W}"
-      CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
-      # LDFLAGS="-static-libstdc++ ${LDFLAGS}"
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
-      if [ "${TARGET_PLATFORM}" == "linux" ]
-      then
-        LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
-      fi
-
-      export CPPFLAGS
-      export CFLAGS
-      export CXXFLAGS
-      export LDFLAGS
-
-      if [ ! -f "config.status" ]
-      then
-        (
-          if [ "${IS_DEVELOP}" == "y" ]
-          then
-            env | sort
-          fi
-
-          echo
-          echo "Running mingw-w64 binutils configure..."
-
-          if [ "${IS_DEVELOP}" == "y" ]
-          then
-            run_verbose bash "${SOURCES_FOLDER_PATH}/${mingw_binutils_src_folder_name}/configure" --help
-          fi
-
-# TODO: check what is wrong, the else branch fails to compile some
-# packages, like zlib, due to something possibly related to big-obj.
-if true
-then
-
-          config_options=()
-
-          config_options+=("--prefix=${BINS_INSTALL_FOLDER_PATH}/usr")
-          config_options+=("--mandir=${LIBS_INSTALL_FOLDER_PATH}/share/man")
-
-          config_options+=("--build=${BUILD}")
-          config_options+=("--target=${MINGW_TARGET}")
-
-          config_options+=("--with-sysroot=${BINS_INSTALL_FOLDER_PATH}")
-          config_options+=("--with-pkgversion=${XBB_MINGW_BINUTILS_BRANDING}")
-
-          config_options+=("--enable-static")
-          config_options+=("--enable-lto")
-          config_options+=("--enable-plugins")
-          config_options+=("--enable-deterministic-archives")
-
-          config_options+=("--disable-shared")
-          config_options+=("--disable-multilib")
-          config_options+=("--disable-nls")
-          config_options+=("--disable-werror")
-          config_options+=("--disable-new-dtags")
-
-          run_verbose bash "${SOURCES_FOLDER_PATH}/${mingw_binutils_src_folder_name}/configure" \
-            "${config_options[@]}"
-
-else
-
-          config_options=()
-
-          config_options+=("--prefix=${BINS_INSTALL_FOLDER_PATH}/usr")
-          config_options+=("--mandir=${LIBS_INSTALL_FOLDER_PATH}/share/man")
-
-          config_options+=("--with-sysroot=${BINS_INSTALL_FOLDER_PATH}")
-
-          config_options+=("--build=${BUILD}")
-          config_options+=("--target=${MINGW_TARGET}")
-
-          config_options+=("--with-pkgversion=${XBB_MINGW_BINUTILS_BRANDING}")
-
-          # config_options+=("--without-system-zlib")
-          config_options+=("--with-system-zlib")
-
-          config_options+=("--with-pic")
-
-          # error: debuginfod is missing or unusable
-          config_options+=("--without-debuginfod")
-
-          # libz issues
-          # config_options+=("--enable-ld")
-
-          if [ "${HOST_MACHINE}" == "x86_64" ]
-          then
-            # From MSYS2 MINGW
-            config_options+=("--enable-64-bit-bfd")
-          fi
-
-          if true
-          then
-            config_options+=("--enable-shared")
-            config_options+=("--enable-shared-libgcc")
-          else
-            config_options+=("--disable-shared")
-            config_options+=("--disable-shared-libgcc")
-          fi
-
-          config_options+=("--enable-static")
-          config_options+=("--enable-gold")
-          config_options+=("--enable-lto")
-
-          config_options+=("--enable-libssp")
-          config_options+=("--enable-relro")
-          config_options+=("--enable-threads")
-          config_options+=("--enable-interwork")
-          config_options+=("--enable-plugins")
-          config_options+=("--enable-build-warnings=no")
-          config_options+=("--enable-deterministic-archives")
-
-          config_options+=("--disable-nls")
-
-          config_options+=("--disable-multilib")
-          config_options+=("--disable-werror")
-          config_options+=("--disable-sim")
-          config_options+=("--disable-gdb")
-
-          config_options+=("--disable-rpath")
-          config_options+=("--disable-new-dtags")
-
-          run_verbose bash "${SOURCES_FOLDER_PATH}/${mingw_binutils_src_folder_name}/configure" \
-            "${config_options[@]}"
-
-fi
-
-          run_verbose make configure-host
-
-          cp "config.log" "${LOGS_FOLDER_PATH}/${mingw_binutils_folder_name}/config-log-$(ndate).txt"
-        ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${mingw_binutils_folder_name}/configure-output-$(ndate).txt"
-      fi
-
-      (
-        echo
-        echo "Running mingw-w64 binutils make..."
-
-        # Build.
-        run_verbose make -j ${JOBS}
-
-        show_libs "ld/ld-new"
-        show_libs "gas/as-new"
-        show_libs "binutils/readelf"
-
-        # make install-strip
-        run_verbose make install
-
-        # For just in case, it has nasty consequences when picked
-        # in other builds.
-        # TODO: check if needed
-        # rm -fv "${BINS_INSTALL_FOLDER_PATH}/usr/lib/libiberty.a" "${BINS_INSTALL_FOLDER_PATH}/usr/lib64/libiberty.a"
-
-      ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${mingw_binutils_folder_name}/make-output-$(ndate).txt"
-    )
-
-    (
-      test_mingw_binutils
-    ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${mingw_binutils_folder_name}/test-output-$(ndate).txt"
-
-    hash -r
-
-    touch "${mingw_binutils_stamp_file_path}"
-
-  else
-    echo "Component mingw-w64 binutils already installed."
-  fi
-
-  test_functions+=("test_mingw_binutils")
-}
-
-function test_mingw_binutils()
-{
-  (
-    # xbb_activate_installed_bin
-
-    echo
-    echo "Checking the mingw binutils shared libraries..."
-
-    show_libs "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-ar"
-    show_libs "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-as"
-    show_libs "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-ld"
-    show_libs "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-nm"
-    show_libs "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-objcopy"
-    show_libs "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-objdump"
-    show_libs "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-ranlib"
-    show_libs "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-size"
-    show_libs "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-strings"
-    show_libs "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-strip"
-
-    echo
-    echo "Testing if mingw binutils binaries start properly..."
-
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-ar" --version
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-as" --version
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-ld" --version
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-nm" --version
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-objcopy" --version
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-objdump" --version
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-ranlib" --version
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-size" --version
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-strings" --version
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-strip" --version
-
-    echo
-    echo "Testing if binutils binaries display help..."
-
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-ar" --help
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-as" --help
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-ld" --help
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-nm" --help
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-objcopy" --help
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-objdump" --help
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-ranlib" --help
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-size" --help
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-strings" --help
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-strip" --help
-  )
-}
-
-# -----------------------------------------------------------------------------
-# mingw-w64
-
-# http://mingw-w64.org/doku.php/start
-# https://sourceforge.net/projects/mingw-w64/files/mingw-w64/mingw-w64-release/
-
-# https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=mingw-w64-headers
-# https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=mingw-w64-crt
-# https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=mingw-w64-winpthreads
-# https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=mingw-w64-binutils
-# https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=mingw-w64-gcc
-
-# https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=mingw-w64-gcc
-
-# 2018-06-03, "5.0.4"
-# 2018-09-16, "6.0.0"
-# 2019-11-11, "7.0.0"
-# 2020-09-18, "8.0.0"
-# 2021-05-09, "8.0.2"
-# 2021-05-22, "9.0.0"
-
-function prepare_mingw_env()
-{
-  export mingw_version="$1"
-
-  # Number
-  export mingw_version_major=$(echo ${mingw_version} | sed -e 's|\([0-9][0-9]*\)\..*|\1|')
-
-  # The original SourceForge location.
-  export mingw_src_folder_name="mingw-w64-v${mingw_version}"
-}
-
-# Used to initialise options in all mingw builds:
-# `config_options=("${config_options_common[@]}")`
-
-function prepare_mingw_config_options_common()
-{
-  # ---------------------------------------------------------------------------
-  # Used in multiple configurations.
-
-  config_options_common=()
-
-  local prefix=${BINS_INSTALL_FOLDER_PATH}
-  if [ $# -ge 1 ]
-  then
-    config_options_common+=("--prefix=$1")
-  else
-    echo "prepare_mingw_config_options_common requires a prefix path"
-    exit 1
-  fi
-
-  config_options_common+=("--disable-multilib")
-
-  # https://docs.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt?view=msvc-160
-  # Windows 7
-  config_options_common+=("--with-default-win32-winnt=0x601")
-
-  # `ucrt` is the new Windows Universal C Runtime:
-  # https://support.microsoft.com/en-us/topic/update-for-universal-c-runtime-in-windows-c0514201-7fe6-95a3-b0a5-287930f3560c
-  # config_options_common+=("--with-default-msvcrt=${MINGW_MSVCRT:-msvcrt}")
-  config_options_common+=("--with-default-msvcrt=${MINGW_MSVCRT:-ucrt}")
-
-  config_options_common+=("--enable-wildcard")
-  config_options_common+=("--enable-warnings=0")
-}
-
-function download_mingw()
-{
-  local mingw_folder_archive="${mingw_src_folder_name}.tar.bz2"
-  # The original SourceForge location.
-  local mingw_url="https://sourceforge.net/projects/mingw-w64/files/mingw-w64/mingw-w64-release/${mingw_folder_archive}"
-
-  # If SourceForge is down, there is also a GitHub mirror.
-  # https://github.com/mirror/mingw-w64
-  # mingw_src_folder_name="mingw-w64-${mingw_version}"
-  # mingw_folder_archive="v${mingw_version}.tar.gz"
-  # mingw_url="https://github.com/mirror/mingw-w64/archive/${mingw_folder_archive}"
-
-  # https://sourceforge.net/p/mingw-w64/wiki2/Cross%20Win32%20and%20Win64%20compiler/
-  # https://sourceforge.net/p/mingw-w64/mingw-w64/ci/master/tree/configure
-
-  download_and_extract "${mingw_url}" "${mingw_folder_archive}" \
-    "${mingw_src_folder_name}"
-}
-
-function build_mingw_headers()
-{
-  local mingw_headers_folder_name="mingw-${mingw_version}-headers"
-
-  local mingw_headers_stamp_file_path="${STAMPS_FOLDER_PATH}/stamp-${mingw_headers_folder_name}-installed"
-  if [ ! -f "${mingw_headers_stamp_file_path}" ]
-  then
-
-    mkdir -pv "${LOGS_FOLDER_PATH}/${mingw_headers_folder_name}"
-
-    (
-      mkdir -pv "${BUILD_FOLDER_PATH}/${mingw_headers_folder_name}"
-      cd "${BUILD_FOLDER_PATH}/${mingw_headers_folder_name}"
-
-      xbb_activate_installed_dev
-
-      if [ ! -f "config.status" ]
-      then
-        (
-          if [ "${IS_DEVELOP}" == "y" ]
-          then
-            env | sort
-          fi
-
-          echo
-          echo "Running mingw-w64 headers configure..."
-
-          if [ "${IS_DEVELOP}" == "y" ]
-          then
-            run_verbose bash "${SOURCES_FOLDER_PATH}/${mingw_src_folder_name}/mingw-w64-headers/configure" --help
-          fi
-
-          prepare_mingw_config_options_common "${BINS_INSTALL_FOLDER_PATH}/usr/${MINGW_TARGET}"
-          config_options=("${config_options_common[@]}")
-          config_options+=("--mandir=${LIBS_INSTALL_FOLDER_PATH}/share/man")
-
-          config_options+=("--build=${BUILD}")
-          config_options+=("--host=${MINGW_TARGET}")
-          config_options+=("--target=${MINGW_TARGET}")
-
-          config_options+=("--with-tune=generic")
-
-          config_options+=("--enable-sdk=all")
-          config_options+=("--enable-idl")
-          config_options+=("--without-widl")
-
-          run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${mingw_src_folder_name}/mingw-w64-headers/configure" \
-            "${config_options[@]}"
-
-          cp "config.log" "${LOGS_FOLDER_PATH}/${mingw_headers_folder_name}/config-log-$(ndate).txt"
-        ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${mingw_headers_folder_name}/configure-output-$(ndate).txt"
-      fi
-
-      (
-        echo
-        echo "Running mingw-w64 headers make..."
-
-        # Build.
-        run_verbose make -j ${JOBS}
-
-        # make install-strip
-        run_verbose make install-strip
-
-if true
-then
-        (
-          # GCC requires the `x86_64-w64-mingw32` folder be mirrored as
-          # `mingw` in the root.
-          cd "${BINS_INSTALL_FOLDER_PATH}"
-          run_verbose rm -fv "mingw"
-          run_verbose ln -sv "usr/${MINGW_TARGET}" "mingw"
-        )
-fi
-
-      ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${mingw_headers_folder_name}/make-output-$(ndate).txt"
-    )
-
-    hash -r
-
-    touch "${mingw_headers_stamp_file_path}"
-
-  else
-    echo "Component mingw-w64 headers already installed."
-  fi
-}
-
-# -----------------------------------------------------------------------------
-
-function build_mingw_gcc_first()
-{
-  # https://gcc.gnu.org
-  # https://gcc.gnu.org/wiki/InstallingGCC
-
-  # https://github.com/archlinux/svntogit-community/blob/packages/mingw-w64-gcc/trunk/PKGBUILD
-  # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=mingw-w64-gcc
-
-  # https://ftp.gnu.org/gnu/gcc/
-  # 2018-12-06, "7.4.0"
-  # 2019-11-14, "7.5.0"
-  # 2019-02-22, "8.3.0"
-  # 2019-08-12, "9.2.0"
-
-  export mingw_gcc_version="$1"
-
-  # Number
-  local mingw_gcc_version_major=$(echo ${mingw_gcc_version} | sed -e 's|\([0-9][0-9]*\)\..*|\1|')
-
-  local mingw_gcc_src_folder_name="gcc-${mingw_gcc_version}"
-
-  local mingw_gcc_archive="${mingw_gcc_src_folder_name}.tar.xz"
-  local mingw_gcc_url="https://ftp.gnu.org/gnu/gcc/gcc-${mingw_gcc_version}/${mingw_gcc_archive}"
-
-  export mingw_gcc_folder_name="mingw-gcc-${mingw_gcc_version}"
-
-  local mingw_gcc_step1_stamp_file_path="${STAMPS_FOLDER_PATH}/stamp-mingw-gcc-step1-${mingw_gcc_version}-installed"
-  if [ ! -f "${mingw_gcc_step1_stamp_file_path}" ]
-  then
-
-    cd "${SOURCES_FOLDER_PATH}"
-
-    download_and_extract "${mingw_gcc_url}" "${mingw_gcc_archive}" \
-      "${mingw_gcc_src_folder_name}"
-
-    mkdir -pv "${LOGS_FOLDER_PATH}/${mingw_gcc_folder_name}"
-
-    (
-      mkdir -pv "${BUILD_FOLDER_PATH}/${mingw_gcc_folder_name}"
-      cd "${BUILD_FOLDER_PATH}/${mingw_gcc_folder_name}"
-
-      xbb_activate_installed_dev
-
-      CPPFLAGS="${XBB_CPPFLAGS}"
-      CFLAGS="${XBB_CFLAGS_NO_W}"
-      CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
-
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
-      if [ "${TARGET_PLATFORM}" == "linux" ]
-      then
-        LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
-      fi
-
-      export CPPFLAGS
-      export CFLAGS
-      export CXXFLAGS
-      export LDFLAGS
-
-      if [ ! -f "config.status" ]
-      then
-        (
-          if [ "${IS_DEVELOP}" == "y" ]
-          then
-            env | sort
-          fi
-
-          echo
-          echo "Running mingw gcc step 1 configure..."
-
-          if [ "${IS_DEVELOP}" == "y" ]
-          then
-            # For the native build, --disable-shared failed with errors in libstdc++-v3
-            run_verbose bash "${SOURCES_FOLDER_PATH}/${mingw_gcc_src_folder_name}/configure" --help
-            run_verbose bash "${SOURCES_FOLDER_PATH}/${mingw_gcc_src_folder_name}/gcc/configure" --help
-          fi
-
-if true
-then
-
-          config_options=()
-
-          config_options+=("--prefix=${BINS_INSTALL_FOLDER_PATH}/usr")
-          config_options+=("--mandir=${LIBS_INSTALL_FOLDER_PATH}/share/man")
-
-          config_options+=("--build=${BUILD}")
-          # config_options+=("--host=${BUILD}")
-          config_options+=("--target=${MINGW_TARGET}")
-
-          config_options+=("--with-sysroot=${BINS_INSTALL_FOLDER_PATH}")
-          config_options+=("--with-pkgversion=${XBB_MINGW_GCC_BRANDING}")
-
-          config_options+=("--enable-languages=c,c++,fortran,objc,obj-c++")
-          config_options+=("--enable-shared")
-          config_options+=("--enable-static")
-          config_options+=("--enable-threads=posix")
-          config_options+=("--enable-fully-dynamic-string")
-          config_options+=("--enable-libstdcxx-time=yes")
-          config_options+=("--enable-cloog-backend=isl")
-          config_options+=("--enable-lto")
-          config_options+=("--enable-libgomp")
-          config_options+=("--enable-checking=release")
-          config_options+=("--disable-dw2-exceptions")
-          config_options+=("--disable-multilib")
-          # config_options+=("--disable-rpath")
-          config_options+=("ac_cv_header_sys_mman_h=no")
-
-          run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${mingw_gcc_src_folder_name}/configure" \
-            "${config_options[@]}"
-
-else
-
-          config_options=()
-
-          config_options+=("--prefix=${BINS_INSTALL_FOLDER_PATH}/usr")
-          config_options+=("--mandir=${LIBS_INSTALL_FOLDER_PATH}/share/man")
-
-          config_options+=("--with-sysroot=${BINS_INSTALL_FOLDER_PATH}")
-
-          config_options+=("--build=${BUILD}")
-          config_options+=("--host=${BUILD}")
-          config_options+=("--target=${MINGW_TARGET}")
-
-          config_options+=("--with-pkgversion=${XBB_MINGW_GCC_BRANDING}")
-
-          config_options+=("--with-dwarf2")
-
-          config_options+=("--disable-multilib")
-          config_options+=("--disable-werror")
-
-          config_options+=("--with-default-libstdcxx-abi=new")
-
-          if true
-          then
-            config_options+=("--enable-shared")
-            # config_options+=("--enable-shared-libgcc")
-          else
-            config_options+=("--disable-shared")
-            config_options+=("--disable-shared-libgcc")
-          fi
-
-          config_options+=("--disable-nls")
-          # config_options+=("--enable-libgomp")
-          config_options+=("--disable-libgomp")
-
-          config_options+=("--disable-sjlj-exceptions")
-          config_options+=("--disable-libunwind-exceptions")
-          config_options+=("--disable-win32-registry")
-          config_options+=("--disable-libstdcxx-debug")
-          config_options+=("--disable-libstdcxx-pch")
-
-          config_options+=("--enable-languages=c,c++,fortran,objc,obj-c++")
-          config_options+=("--enable-objc-gc=auto")
-
-          config_options+=("--enable-static")
-
-          config_options+=("--enable-lto")
-          config_options+=("--enable-checking=release")
-
-          config_options+=("--enable-cloog-backend=isl")
-
-          config_options+=("--enable-libssp")
-          config_options+=("--enable-libatomic")
-
-          config_options+=("--enable-__cxa_atexit")
-          config_options+=("--enable-mingw-wildcard")
-
-          config_options+=("--enable-version-specific-runtime-libs")
-          config_options+=("--enable-threads=posix")
-
-          config_options+=("--enable-libstdcxx")
-          config_options+=("--enable-libstdcxx-time=yes")
-          config_options+=("--enable-libstdcxx-visibility")
-          config_options+=("--enable-libstdcxx-threads")
-
-          # config_options+=("--enable-fully-dynamic-string")
-
-          if [ ${mingw_version_major} -ge 7 -a ${mingw_gcc_version} -ge 9 ]
-          then
-            # Requires new GCC 9 & mingw 7.
-            # --enable-libstdcxx-filesystem-ts=yes
-            config_options+=("--enable-libstdcxx-filesystem-ts=yes")
-          fi
-
-          # Not used in the xPack
-          # config_options+=("--disable-dw2-exceptions")
-          config_options+=("--disable-rpath")
-
-          run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${mingw_gcc_src_folder_name}/configure" \
-            "${config_options[@]}"
-
-fi
-
-          cp "config.log" "${LOGS_FOLDER_PATH}/${mingw_gcc_folder_name}/config-step1-log-$(ndate).txt"
-        ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${mingw_gcc_folder_name}/configure-step1-output-$(ndate).txt"
-      fi
-
-      (
-        echo
-        echo "Running mingw gcc step 1 make..."
-
-        # Build.
-        run_verbose make -j ${JOBS} all-gcc
-
-        run_verbose make install-strip-gcc
-
-      ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${mingw_gcc_folder_name}/make-step1-output-$(ndate).txt"
-    )
-
-    hash -r
-
-    touch "${mingw_gcc_step1_stamp_file_path}"
-
-  else
-    echo "Component mingw-w64 gcc step 1 already installed."
-  fi
-}
-
-# -----------------------------------------------------------------------------
-
-function build_mingw_widl()
-{
-  local mingw_widl_folder_name="mingw-${mingw_version}-widl"
-
-  mkdir -pv "${LOGS_FOLDER_PATH}/${mingw_widl_folder_name}"
-
-  local mingw_widl_stamp_file_path="${STAMPS_FOLDER_PATH}/stamp-${mingw_widl_folder_name}-installed"
-  if [ ! -f "${mingw_widl_stamp_file_path}" ]
-  then
-    (
-      mkdir -p "${BUILD_FOLDER_PATH}/${mingw_widl_folder_name}"
-      cd "${BUILD_FOLDER_PATH}/${mingw_widl_folder_name}"
-
-      xbb_activate_installed_dev
-
-      CPPFLAGS="${XBB_CPPFLAGS}"
-      CFLAGS="${XBB_CFLAGS_NO_W}"
-      CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
-
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC} -v"
-      if [ "${TARGET_PLATFORM}" == "linux" ]
-      then
-        LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
-      fi
-
-      export CPPFLAGS
-      export CFLAGS
-      export CXXFLAGS
-      export LDFLAGS
-
-      if [ ! -f "config.status" ]
-      then
-        (
-          if [ "${IS_DEVELOP}" == "y" ]
-          then
-            env | sort
-          fi
-
-          echo
-          echo "Running mingw-w64-widl configure..."
-
-          if [ "${IS_DEVELOP}" == "y" ]
-          then
-            bash "${SOURCES_FOLDER_PATH}/${mingw_src_folder_name}/mingw-w64-tools/widl/configure" --help
-          fi
-
-          config_options=()
-          config_options+=("--prefix=${BINS_INSTALL_FOLDER_PATH}/usr")
-          config_options+=("--mandir=${LIBS_INSTALL_FOLDER_PATH}/share/man")
-
-          config_options+=("--build=${BUILD}")
-          config_options+=("--host=${BUILD}") # Native!
-          config_options+=("--target=${MINGW_TARGET}")
-
-          config_options+=("--with-widl-includedir=${BINS_INSTALL_FOLDER_PATH}/include")
-
-          run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${mingw_src_folder_name}/mingw-w64-tools/widl/configure" \
-            "${config_options[@]}"
-
-         cp "config.log" "${LOGS_FOLDER_PATH}/${mingw_widl_folder_name}/config-log-$(ndate).txt"
-        ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${mingw_widl_folder_name}/configure-output-$(ndate).txt"
-      fi
-
-      (
-        echo
-        echo "Running mingw-w64-widl make..."
-
-        # Build.
-        run_verbose make -j ${JOBS}
-
-        run_verbose make install-strip
-
-      ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${mingw_widl_folder_name}/make-output-$(ndate).txt"
-    )
-
-    hash -r
-
-    touch "${mingw_widl_stamp_file_path}"
-
-  else
-    echo "Component mingw-w64-widl already installed."
-  fi
-}
-
-# -----------------------------------------------------------------------------
-
-function build_mingw_crt()
-{
-  # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=mingw-w64-crt
-  # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=mingw-w64-crt-git
-
-  local mingw_crt_folder_name="mingw-${mingw_version}-crt"
-
-  local mingw_crt_stamp_file_path="${STAMPS_FOLDER_PATH}/stamp-${mingw_crt_folder_name}-installed"
-  if [ ! -f "${mingw_crt_stamp_file_path}" ]
-  then
-
-    mkdir -pv "${LOGS_FOLDER_PATH}/${mingw_crt_folder_name}"
-
-    (
-      mkdir -pv "${BUILD_FOLDER_PATH}/${mingw_crt_folder_name}"
-      cd "${BUILD_FOLDER_PATH}/${mingw_crt_folder_name}"
-
-      xbb_activate_installed_bin
-      xbb_activate_installed_dev
-
-      # Overwrite the flags, -ffunction-sections -fdata-sections result in
-      # {standard input}: Assembler messages:
-      # {standard input}:693: Error: CFI instruction used without previous .cfi_startproc
-      # {standard input}:695: Error: .cfi_endproc without corresponding .cfi_startproc
-      # {standard input}:697: Error: .seh_endproc used in segment '.text' instead of expected '.text$WinMainCRTStartup'
-      # {standard input}: Error: open CFI at the end of file; missing .cfi_endproc directive
-      # {standard input}:7150: Error: can't resolve `.text' {.text section} - `.LFB5156' {.text$WinMainCRTStartup section}
-      # {standard input}:8937: Error: can't resolve `.text' {.text section} - `.LFB5156' {.text$WinMainCRTStartup section}
-
-      CFLAGS="-O2 -pipe -w"
-      CXXFLAGS="-O2 -pipe -w"
-
-      LDFLAGS="-v"
-
-      export CFLAGS
-      export CXXFLAGS
-      export LDFLAGS
-
-      # Without it, apparently a bug in autoconf/c.m4, function AC_PROG_CC, results in:
-      # checking for _mingw_mac.h... no
-      # configure: error: Please check if the mingw-w64 header set and the build/host option are set properly.
-      # (https://github.com/henry0312/build_gcc/issues/1)
-      # export CC=""
-
-      if [ ! -f "config.status" ]
-      then
-        (
-          if [ "${IS_DEVELOP}" == "y" ]
-          then
-            env | sort
-          fi
-
-          echo
-          echo "Running mingw-w64 crt configure..."
-
-          if [ "${IS_DEVELOP}" == "y" ]
-          then
-            run_verbose bash "${SOURCES_FOLDER_PATH}/${mingw_src_folder_name}/mingw-w64-crt/configure" --help
-          fi
-
-          config_options=()
-
-          prepare_mingw_config_options_common "${BINS_INSTALL_FOLDER_PATH}/usr/${MINGW_TARGET}"
-          config_options=("${config_options_common[@]}")
-          config_options+=("--mandir=${LIBS_INSTALL_FOLDER_PATH}/share/man")
-
-          config_options+=("--with-sysroot=${BINS_INSTALL_FOLDER_PATH}")
-
-          config_options+=("--build=${BUILD}")
-          config_options+=("--host=${MINGW_TARGET}")
-          config_options+=("--target=${MINGW_TARGET}")
-
-          if [ "${TARGET_BITS}" == "64" ]
-          then
-            config_options+=("--disable-lib32")
-            config_options+=("--enable-lib64")
-          elif [ "${TARGET_BITS}" == "32" ]
-          then
-            config_options+=("--enable-lib32")
-            config_options+=("--disable-lib64")
-          else
-            echo "Unsupported TARGET_BITS ${TARGET_BITS}."
-            exit 1
-          fi
-
-          config_options+=("--enable-wildcard")
-
-          run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${mingw_src_folder_name}/mingw-w64-crt/configure" \
-            "${config_options[@]}"
-
-          cp "config.log" "${LOGS_FOLDER_PATH}/${mingw_crt_folder_name}/config-log-$(ndate).txt"
-        ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${mingw_crt_folder_name}/configure-output-$(ndate).txt"
-      fi
-
-      (
-        echo
-        echo "Running mingw-w64 crt make..."
-
-        # Build.
-        run_verbose make -j ${JOBS}
-
-        # make install-strip
-        run_verbose make install-strip
-
-        ls -l "${BINS_INSTALL_FOLDER_PATH}/usr/${MINGW_TARGET}"
-
-      ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${mingw_crt_folder_name}/make-output-$(ndate).txt"
-    )
-
-    hash -r
-
-    touch "${mingw_crt_stamp_file_path}"
-
-  else
-    echo "Component mingw-w64 crt already installed."
-  fi
-}
-
-# -----------------------------------------------------------------------------
-
-function build_mingw_winpthreads()
-{
-  # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=mingw-w64-winpthreads
-  # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=mingw-w64-winpthreads-git
-
-  local mingw_build_winpthreads_folder_name="mingw-${mingw_version}-winpthreads"
-
-  local mingw_winpthreads_stamp_file_path="${STAMPS_FOLDER_PATH}/stamp-${mingw_build_winpthreads_folder_name}-installed"
-  if [ ! -f "${mingw_winpthreads_stamp_file_path}" ]
-  then
-
-    mkdir -pv "${LOGS_FOLDER_PATH}/${mingw_build_winpthreads_folder_name}"
-
-    (
-      mkdir -pv "${BUILD_FOLDER_PATH}/${mingw_build_winpthreads_folder_name}"
-      cd "${BUILD_FOLDER_PATH}/${mingw_build_winpthreads_folder_name}"
-
-      xbb_activate_installed_bin
-      xbb_activate_installed_dev
-
-      CPPFLAGS=""
-      CFLAGS="-O2 -pipe -w"
-      CXXFLAGS="-O2 -pipe -w"
-
-      LDFLAGS="-v"
-
-      export CPPFLAGS
-      export CFLAGS
-      export CXXFLAGS
-      export LDFLAGS
-
-      # export CC=""
-      # prepare_gcc_env "${MINGW_TARGET}-"
-
-      if [ ! -f "config.status" ]
-      then
-        (
-          if [ "${IS_DEVELOP}" == "y" ]
-          then
-            env | sort
-          fi
-
-          echo
-          echo "Running mingw-w64 winpthreads configure..."
-
-          if [ "${IS_DEVELOP}" == "y" ]
-          then
-            run_verbose bash "${SOURCES_FOLDER_PATH}/${mingw_src_folder_name}/mingw-w64-crt/configure" --help
-          fi
-
-          config_options=()
-
-          config_options+=("--prefix=${BINS_INSTALL_FOLDER_PATH}/usr/${MINGW_TARGET}")
-          config_options+=("--mandir=${LIBS_INSTALL_FOLDER_PATH}/share/man")
-          config_options+=("--libdir=${BINS_INSTALL_FOLDER_PATH}/usr/${MINGW_TARGET}/lib")
-
-          config_options+=("--build=${BUILD}")
-          config_options+=("--host=${MINGW_TARGET}")
-          config_options+=("--target=${MINGW_TARGET}")
-
-          config_options+=("--with-sysroot=${BINS_INSTALL_FOLDER_PATH}")
-
-          config_options+=("--enable-static")
-
-          if true
-          then
-            config_options+=("--enable-shared")
-          else
-            config_options+=("--disable-shared")
-          fi
-
-          run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${mingw_src_folder_name}/mingw-w64-libraries/winpthreads/configure" \
-            "${config_options[@]}"
-
-         cp "config.log" "${LOGS_FOLDER_PATH}/${mingw_build_winpthreads_folder_name}/config-log-$(ndate).txt"
-        ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${mingw_build_winpthreads_folder_name}/configure-output-$(ndate).txt"
-      fi
-
-      (
-        echo
-        echo "Running mingw-w64 winpthreads make..."
-
-        # Build.
-        run_verbose make -j ${JOBS}
-
-        # make install-strip
-        run_verbose make install
-
-        run_verbose ls -l "${BINS_INSTALL_FOLDER_PATH}/usr/${MINGW_TARGET}"
-
-      ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${mingw_build_winpthreads_folder_name}/make-output-$(ndate).txt"
-    )
-
-    hash -r
-
-    touch "${mingw_winpthreads_stamp_file_path}"
-
-  else
-    echo "Component mingw-w64 winpthreads already installed."
-  fi
-}
-
-# -----------------------------------------------------------------------------
-function build_mingw_gcc_final()
-{
-  local mingw_gcc_final_stamp_file_path="${STAMPS_FOLDER_PATH}/stamp-mingw-gcc-final-${mingw_gcc_version}-installed"
-  if [ ! -f "${mingw_gcc_final_stamp_file_path}" ]
-  then
-
-    mkdir -pv "${LOGS_FOLDER_PATH}/${mingw_gcc_folder_name}"
-
-    (
-      echo
-      echo "Running mingw-w64 gcc final make..."
-
-      mkdir -pv "${BUILD_FOLDER_PATH}/${mingw_gcc_folder_name}"
-      cd "${BUILD_FOLDER_PATH}/${mingw_gcc_folder_name}"
-
-      xbb_activate_installed_dev
-
-      CPPFLAGS="${XBB_CPPFLAGS}"
-      CFLAGS="${XBB_CFLAGS_NO_W}"
-      CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
-
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
-      if [ "${TARGET_PLATFORM}" == "linux" ]
-      then
-        LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
-      fi
-
-      export CPPFLAGS
-      export CFLAGS
-      export CXXFLAGS
-      export LDFLAGS
-
-      if [ "${IS_DEVELOP}" == "y" ]
-      then
-        env | sort
-      fi
-
-      echo
-      echo "Running mingw gcc step 2 configure..."
-
-      run_verbose make -j configure-target-libgcc
-
-      if [ -f "${MINGW_TARGET}/libgcc/auto-target.h" ]
-      then
-        run_verbose grep 'HAVE_SYS_MMAN_H' "${MINGW_TARGET}/libgcc/auto-target.h"
-        run_verbose sed -i.bak -e 's|#define HAVE_SYS_MMAN_H 1|#define HAVE_SYS_MMAN_H 0|' \
-          "${MINGW_TARGET}/libgcc/auto-target.h"
-        run_verbose diff "${MINGW_TARGET}/libgcc/auto-target.h.bak" "${MINGW_TARGET}/libgcc/auto-target.h" || true
-      fi
-
-      echo
-      echo "Running mingw gcc step 2 make..."
-
-      # Build.
-      run_verbose make -j ${JOBS}
-
-      # make install-strip
-      run_verbose make install-strip
-
-    ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${mingw_gcc_folder_name}/make-final-output-$(ndate).txt"
-
-    (
-      xbb_activate_installed_bin
-
-      if true
-      then
-
-        cd "${BINS_INSTALL_FOLDER_PATH}"
-
-        set +e
-        find ${MINGW_TARGET} \
-          -name '*.so' -type f \
-          -print \
-          -exec "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-strip" --strip-debug {} \;
-        find ${MINGW_TARGET} \
-          -name '*.so.*'  \
-          -type f \
-          -print \
-          -exec "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-strip" --strip-debug {} \;
-        # Note: without ranlib, windows builds failed.
-        find ${MINGW_TARGET} lib/gcc/${MINGW_TARGET} \
-          -name '*.a'  \
-          -type f  \
-          -print \
-          -exec "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-strip" --strip-debug {} \; \
-          -exec "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-ranlib" {} \;
-        set -e
-
-      fi
-    ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${mingw_gcc_folder_name}/strip-final-output-$(ndate).txt"
-
-    (
-      test_mingw_gcc
-    ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${mingw_gcc_folder_name}/test-final-output-$(ndate).txt"
-
-    hash -r
-
-    touch "${mingw_gcc_final_stamp_file_path}"
-
-  else
-    echo "Component mingw-w64 gcc final already installed."
-  fi
-
-  test_functions+=("test_mingw_gcc")
-}
-
-function test_mingw_gcc()
-{
-  (
-    # xbb_activate_installed_bin
-
-    echo
-    echo "Testing if mingw gcc binaries start properly..."
-
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-gcc" --version
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-g++" --version
-
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-gcc-ar" --version
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-gcc-nm" --version
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-gcc-ranlib" --version
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-gcov" --version
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-gcov-dump" --version
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-gcov-tool" --version
-
-    if [ -f "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-gfortran" ]
-    then
-      run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-gfortran" --version
-    fi
-
-    echo
-    echo "Showing configurations..."
-
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-gcc" --help
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-gcc" -v
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-gcc" -dumpversion
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-gcc" -dumpmachine
-
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-gcc" -print-search-dirs
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-gcc" -print-libgcc-file-name
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-gcc" -print-multi-directory
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-gcc" -print-multi-lib
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-gcc" -print-multi-os-directory
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-gcc" -print-sysroot
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-gcc" -print-file-name=libgcc_s.so
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-gcc" -print-prog-name=cc1
-
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-g++" --help
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-g++" -v
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-g++" -dumpversion
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-g++" -dumpmachine
-
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-g++" -print-search-dirs
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-g++" -print-libgcc-file-name
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-g++" -print-multi-directory
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-g++" -print-multi-lib
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-g++" -print-multi-os-directory
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-g++" -print-sysroot
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-g++" -print-file-name=libstdc++.so
-    run_app "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-g++" -print-prog-name=cc1plus
-
-    echo
-    echo "Testing if mingw gcc compiles simple Hello programs..."
-
-    mkdir -pv "${HOME}/tmp/mingw-gcc"
-    cd "${HOME}/tmp/mingw-gcc"
-
-    # Note: __EOF__ is quoted to prevent substitutions here.
-    cat <<'__EOF__' > hello.cpp
-#include <iostream>
-
-int
-main(int argc, char* argv[])
-{
-std::cout << "Hello" << std::endl;
-}
-__EOF__
-
-    run_verbose "${BINS_INSTALL_FOLDER_PATH}/usr/bin/${MINGW_TARGET}-g++" hello.cpp -o hello -v -static-libgcc -static-libstdc++
-
-    # TODO
-    # run_verbose wine hello.exe
-
-    # rm -rf hello.*
-  )
-}
-
-# -----------------------------------------------------------------------------
-
-function build_wine()
-{
-  # https://www.winehq.org
-  # https://dl.winehq.org/wine/source/
-  # https://dl.winehq.org/wine/source/4.x/wine-4.3.tar.xz
-  # https://dl.winehq.org/wine/source/5.x/wine-5.1.tar.xz
-
-  # https://github.com/archlinux/svntogit-community/blob/packages/wine/trunk/PKGBUILD
-
-  # 2017-09-16, "4.3"
-  # 2019-11-29, "4.21"
-  # Fails with a missing yywrap
-  # 2020-01-21, "5.0"
-  # 2020-02-02, "5.1"
-  # 2021-06-04, "6.10"
-  # 2020-11-20, "5.22"
-  # 2021-09-10, "6.17"
-  # 2021-11-05, "6.21"
-  # 2021-12-03, "6.23"
-
-  local wine_version="$1"
-
-  local wine_version_major="$(echo ${wine_version} | sed -e 's|\([0-9][0-9]*\)\.\([0-9][0-9]*\)|\1|')"
-  local wine_version_minor="$(echo ${wine_version} | sed -e 's|\([0-9][0-9]*\)\.\([0-9][0-9]*\)|\2|')"
-
-  local wine_src_folder_name="wine-${wine_version}"
-
-  local wine_archive="${wine_src_folder_name}.tar.xz"
-
-  if [ "${wine_version_minor}" != "0" ]
-  then
-    wine_version_minor="x"
-  fi
-  local wine_url="https://dl.winehq.org/wine/source/${wine_version_major}.${wine_version_minor}/${wine_archive}"
-
-  local wine_folder_name="${wine_src_folder_name}"
-
-  local wine_stamp_file_path="${STAMPS_FOLDER_PATH}/stamp-${wine_folder_name}-installed"
-  if [ ! -f "${wine_stamp_file_path}" ]
-  then
-
-    echo
-    echo "wine in-source build."
-
-    if [ ! -d "${BUILD_FOLDER_PATH}/${wine_folder_name}" ]
-    then
-      cd "${BUILD_FOLDER_PATH}"
-
-      download_and_extract "${wine_url}" "${wine_archive}" \
-        "${wine_src_folder_name}"
-
-      if [ "${wine_src_folder_name}" != "${wine_folder_name}" ]
-      then
-        mv -v "${wine_src_folder_name}" "${wine_folder_name}"
-      fi
-    fi
-
-    mkdir -pv "${LOGS_FOLDER_PATH}/${wine_folder_name}"
-
-    (
-      cd "${BUILD_FOLDER_PATH}/${wine_folder_name}"
-
-      xbb_activate_installed_dev
-      # Required to find the newly compiled mingw-w46.
-      # It also picks flex, which may crash with
-      # macro.lex.yy.c:1031: undefined reference to `yywrap'.
-      # xbb_activate_installed_bin
-
-      CPPFLAGS="${XBB_CPPFLAGS}"
-
-      # TODO: remove when switching to Ubuntu 16.
-      # getauxval was defined in glibc 2.16
-      # https://man7.org/linux/man-pages/man3/getauxval.3.html
-      if is_linux && is_intel && [ "${TARGET_BITS}" == "64" ]
-      then
-        ldd_version="$(ldd --version | sed -n 1p | sed -e 's|^.* ||')"
-        if [ "${ldd_version}" == "2.15" ] # Ubuntu 12
-        then
-          run_verbose sed -i.bak \
-            -e 's|if (getauxval( AT_HWCAP2 ) \& 2)|if (/* getauxval( AT_HWCAP2 ) \& 2 */ 0)|' \
-            dlls/ntdll/unix/signal_x86_64.c
-
-          run_verbose diff dlls/ntdll/unix/signal_x86_64.c.bak dlls/ntdll/unix/signal_x86_64.c || true
-        fi
-      fi
-
-      CFLAGS="${XBB_CFLAGS_NO_W}"
-      CXXFLAGS="${XBB_CXXFLAGS_NO_W}"
-      LDFLAGS="${XBB_LDFLAGS_APP_STATIC_GCC}"
-      if [ "${TARGET_PLATFORM}" == "linux" ]
-      then
-        LDFLAGS+=" -Wl,-rpath,${LD_LIBRARY_PATH}"
-      fi
-
-      export CPPFLAGS
-      export CFLAGS
-      export CXXFLAGS
-      export LDFLAGS
-
-      if [ ! -f "config.status" ]
-      then
-        (
-          if [ "${IS_DEVELOP}" == "y" ]
-          then
-            env | sort
-          fi
-
-          echo
-          echo "Running wine configure..."
-
-          # Get rid of the RUNPATH in install.
-          run_verbose sed -i.bak \
-            -e 's|LDRPATH_INSTALL="-Wl,.*"|LDRPATH_INSTALL=""|' \
-            -e 's|CFLAGS="$CFLAGS -Wl,--enable-new-dtags"|CFLAGS="$CFLAGS"|' \
-            -e 's|LDRPATH_INSTALL="$LDRPATH_INSTALL -Wl,--enable-new-dtags"|LDRPATH_INSTALL="$LDRPATH_INSTALL"|' \
-            "configure"
-
-
-          if [ "${IS_DEVELOP}" == "y" ]
-          then
-            run_verbose bash "configure" --help
-          fi
-
-          config_options=()
-
-          config_options+=("--prefix=${BINS_INSTALL_FOLDER_PATH}")
-          config_options+=("--mandir=${LIBS_INSTALL_FOLDER_PATH}/share/man")
-
-          config_options+=("--build=${BUILD}")
-          config_options+=("--host=${HOST}")
-          config_options+=("--target=${TARGET}")
-
-          config_options+=("--with-png")
-          config_options+=("--without-freetype")
-          config_options+=("--without-x")
-
-          if [ "${TARGET_BITS}" == "64" ]
-          then
-            config_options+=("--enable-win64")
-          fi
-
-          config_options+=("--disable-win16")
-          config_options+=("--disable-tests")
-
-          run_verbose bash ${DEBUG} "configure" \
-            "${config_options[@]}"
-
-          cp "config.log" "${LOGS_FOLDER_PATH}/${wine_folder_name}/config-log-$(ndate).txt"
-        ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${wine_folder_name}/configure-output-$(ndate).txt"
-      fi
-
-      (
-        echo
-        echo "Running wine make..."
-
-        # Build.
-        run_verbose make -j ${JOBS} STRIP=true
-
-        run_verbose make install
-
-        if [ "${TARGET_BITS}" == "64" ]
-        then
-          (
-            cd "${BINS_INSTALL_FOLDER_PATH}/bin"
-            rm -fv wine
-            ln -sv wine64 wine
-          )
-        fi
-
-        # TODO: no tests?
-
-      ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${wine_folder_name}/make-output-$(ndate).txt"
-    )
-
-    (
-      test_wine
-    ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${wine_folder_name}/test-output-$(ndate).txt"
-
-    hash -r
-
-    touch "${wine_stamp_file_path}"
-
-  else
-    echo "Component wine already installed."
-  fi
-
-  test_functions+=("test_wine")
-}
-
-function test_wine()
-{
-  (
-    # xbb_activate_installed_bin
-
-    echo
-    echo "Checking the wine shared libraries..."
-
-    show_libs "$(realpath ${BINS_INSTALL_FOLDER_PATH}/bin/wine)"
-    show_libs "$(realpath ${BINS_INSTALL_FOLDER_PATH}/bin/winebuild)"
-    # show_libs "$(realpath ${BINS_INSTALL_FOLDER_PATH}/bin/winecfg)"
-    # show_libs "$(realpath ${BINS_INSTALL_FOLDER_PATH}/bin/wineconsole)"
-
-    show_libs "$(realpath ${BINS_INSTALL_FOLDER_PATH}/bin/winegcc)"
-    show_libs "$(realpath ${BINS_INSTALL_FOLDER_PATH}/bin/wineg++)"
-
-    libwine=$(find ${BINS_INSTALL_FOLDER_PATH}/lib* -name 'libwine.so')
-    if [ ! -z "${libwine}" ]
-    then
-      show_libs "$(realpath ${libwine})"
-    fi
-
-    echo
-    echo "Testing if wine binaries start properly..."
-
-    # First check if the program is able to tell its version.
-    run_app "${BINS_INSTALL_FOLDER_PATH}/bin/wine" --version
-
-    # Require gcc-xbs
-    # run_app "${BINS_INSTALL_FOLDER_PATH}/bin/winegcc" --version
-    # run_app "${BINS_INSTALL_FOLDER_PATH}/bin/wineg++" --version
-
-    run_app "${BINS_INSTALL_FOLDER_PATH}/bin/winebuild" --version
-    run_app "${BINS_INSTALL_FOLDER_PATH}/bin/winecfg" --version
-    # run_app "${BINS_INSTALL_FOLDER_PATH}/bin/wineconsole" dir
-
-    # This test should check if the program is able to start
-    # a simple executable.
-    # As a side effect, the "${HOME}/.wine" folder is created
-    # and populated with lots of files., so subsequent runs
-    # will no longer have to do it.
-    local netstat=$(find "${BINS_INSTALL_FOLDER_PATH}"/lib* -name netstat.exe)
-    run_app "${BINS_INSTALL_FOLDER_PATH}/bin/wine" ${netstat}
+    rm -rf "${TESTS_FOLDER_PATH}/makedepend"
+    mkdir -pv "${TESTS_FOLDER_PATH}/makedepend"; cd "${TESTS_FOLDER_PATH}/makedepend"
+
+    touch Makefile
+    run_app "${test_bin_folder_path}/makedepend"
   )
 }
 
