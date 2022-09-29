@@ -92,7 +92,7 @@ Before the real build, run a test build on the development machine (`wksi`)
 or the production machines (`xbbma`, `xbbmi`):
 
 ```sh
-rm -rf ~/Work/xbb-bootstrap-*-*
+rm -rf ~/Work/xbb-bootstrap-[0-9]*
 
 caffeinate bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --macos
 ```
@@ -100,7 +100,7 @@ caffeinate bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --d
 Similarly on the Intel Linux (`xbbli`):
 
 ```sh
-sudo rm -rf ~/Work/xbb-bootstrap-*-*
+sudo rm -rf ~/Work/xbb-bootstrap-[0-9]*
 
 bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --linux64
 ```
