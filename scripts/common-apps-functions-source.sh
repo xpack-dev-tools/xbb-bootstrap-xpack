@@ -1799,7 +1799,14 @@ function build_autogen()
           config_options+=("--disable-nls")
 
           config_options+=("--program-prefix=")
-          # config_options+=("ac_cv_func_utimensat=no")
+
+          if [ "${TARGET_PLATFORM}" == "darwin" ]
+          then
+            # It fails on macOS with:
+            # /Users/ilg/Work/xbb-bootstrap-4.0.0/darwin-arm64/sources/autogen-5.18.16/agen5/expExtract.c:48:46: error: 'struct stat' has no member named 'st_mtim'
+            # if (time_is_before(outfile_time, stbf.st_mtime))
+            config_options+=("ac_cv_func_utimensat=no") # HB
+          fi
 
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${autogen_src_folder_name}/configure" \
             "${config_options[@]}"
