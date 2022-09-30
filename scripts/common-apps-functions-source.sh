@@ -285,8 +285,6 @@ function test_patchelf()
   local test_bin_folder_path="$1"
 
   (
-    # xbb_activate_installed_bin
-
     echo
     echo "Checking the patchelf binaries shared libraries..."
 
@@ -1732,7 +1730,7 @@ function build_autogen()
       mkdir -pv "${BUILD_FOLDER_PATH}/${autogen_folder_name}"
       cd "${BUILD_FOLDER_PATH}/${autogen_folder_name}"
 
-      xbb_activate_installed_bin
+      # xbb_activate_installed_bin
       xbb_activate_installed_dev
 
       CPPFLAGS="${XBB_CPPFLAGS} -D_POSIX_C_SOURCE"
@@ -1780,7 +1778,6 @@ function build_autogen()
           #   '--disable-dependency-tracking' option to at least be able to build
           #   the package (albeit without support for automatic dependency tracking).
 
-          # Without ac_cv_func_utimensat=no it fails on macOS.
 
           config_options=()
 
@@ -3536,8 +3533,6 @@ function test_bison()
   local test_bin_folder_path="$1"
 
   (
-    # xbb_activate_installed_bin
-
     echo
     echo "Checking the bison binaries shared libraries..."
 
@@ -3753,8 +3748,6 @@ function test_make()
   local test_bin_folder_path="$1"
 
   (
-    # xbb_activate_installed_bin
-
     echo
     echo "Checking the make binaries shared libraries..."
 
@@ -4420,8 +4413,6 @@ function test_dos2unix()
   local test_bin_folder_path="$1"
 
   (
-    # xbb_activate_installed_bin
-
     echo
     echo "Checking the dos2unix binaries shared libraries..."
 
@@ -5282,8 +5273,6 @@ function test_git()
   local test_bin_folder_path="$1"
 
   (
-    # xbb_activate_installed_bin
-
     echo
     echo "Checking the git binaries shared libraries..."
 
