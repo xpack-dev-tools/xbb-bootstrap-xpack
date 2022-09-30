@@ -960,7 +960,12 @@ function build_curl()
           fi
 
           config_options+=("--with-ssl")
-          config_options+=("--with-secure-transport") # HB
+
+          # Failed on macOS Arm:
+          # from /Users/ilg/Work/xbb-bootstrap-4.0.0/darwin-arm64/sources/curl-7.80.0/lib/vtls/sectransp.c:48:
+          # /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/Security.framework/Headers/Authorization.h:193:14: error: variably modified 'bytes' at file scope
+          # char bytes[kAuthorizationExternalFormLength];
+          # config_options+=("--with-secure-transport") # HB
 
           # config_options+=("--with-libssh2") # Arch
           config_options+=("--with-openssl") # Arch
