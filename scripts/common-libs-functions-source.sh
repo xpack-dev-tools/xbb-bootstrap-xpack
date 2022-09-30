@@ -240,7 +240,8 @@ function build_libunistring()
             config_options+=("--disable-silent-rules") # HB
           fi
 
-          config_options+=("--enable-relocatable")
+          # DO NOT USE, on macOS the LC_RPATH looses GCC references.
+          # config_options+=("--enable-relocatable")
 
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${libunistring_src_folder_name}/configure" \
             "${config_options[@]}"
