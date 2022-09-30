@@ -2264,20 +2264,11 @@ function build_m4()
 
         if [ "${WITH_TESTS}" == "y" ]
         then
-          if [ "${TARGET_PLATFORM}" == "darwin" ]
-          then
-            # On macOS 10.15
-            # FAIL: test-fflush2.sh
-            # FAIL: test-fpurge
-            # FAIL: test-ftell.sh
-            # FAIL: test-ftello2.sh
-            run_verbose make -j1 check || true
-          else
-            # Fails on Ubuntu 18
-            # checks/198.sysval:err
-            rm -rf "${SOURCES_FOLDER_PATH}/${m4_src_folder_name}/checks/198.sysval"
-            run_verbose make -j1 check
-          fi
+          # Fails on Ubuntu 18 and macOS
+          # checks/198.sysval:err
+          rm -rf "${SOURCES_FOLDER_PATH}/${m4_src_folder_name}/checks/198.sysval"
+
+          run_verbose make -j1 check
         fi
 
       ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${m4_folder_name}/make-output-$(ndate).txt"
