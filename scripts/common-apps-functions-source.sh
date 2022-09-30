@@ -3476,7 +3476,8 @@ function build_bison()
 
           config_options+=("--disable-nls")
 
-          config_options+=("--enable-relocatable") # HB
+          # DO NOT USE, on macOS the LC_RPATH looses GCC references.
+          # config_options+=("--enable-relocatable") # HB
 
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${bison_src_folder_name}/configure" \
             "${config_options[@]}"
