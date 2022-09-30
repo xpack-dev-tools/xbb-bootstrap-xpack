@@ -588,8 +588,11 @@ function build_gnutls()
 
           config_options+=("--enable-openssl-compatibility") # Arch
 
-          config_options+=("--enable-guile") # Arch
-          # config_options+=("--disable-guile")
+          # Fails on macOS with:
+          # ice-9/boot-9.scm:752:25: In procedure dispatch-exception:
+          # In procedure dynamic-link: file: "/Users/ilg/Work/xbb-bootstrap-4.0.0/darwin-arm64/build/libs/gnutls-3.7.2/guile/src/guile-gnutls-v-2", message: "file not found"
+          config_options+=("--disable-guile")
+          # config_options+=("--enable-guile") # Arch
 
           config_options+=("--disable-heartbeat-support") # HB
 
