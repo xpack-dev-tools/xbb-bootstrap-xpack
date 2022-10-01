@@ -105,9 +105,6 @@ jobs:
   macos-arm64:
     name: 'macOS arm64 XBB Bootstrap ${{ github.event.inputs.version }} test'
     runs-on: [self-hosted, macos, apple]
-    defaults:
-      run:
-        shell: "/usr/bin/arch -arch arm64e /bin/bash -l {0}"
 
     steps:
       - name: 'Machine'
