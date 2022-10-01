@@ -1824,6 +1824,13 @@ function build_m4()
           # checks/198.sysval:err
           rm -rf "${SOURCES_FOLDER_PATH}/${m4_src_folder_name}/checks/198.sysval"
 
+          if [ "${TARGET_PLATFORM}" == "darwin" ]
+          then
+            # Silence this test on macOS.
+            echo "#!/bin/sh" > "${SOURCES_FOLDER_PATH}/${m4_src_folder_name}/tests/test-execute.sh"
+            echo "exit 0" >> "${SOURCES_FOLDER_PATH}/${m4_src_folder_name}/tests/test-execute.sh"
+          fi
+
           run_verbose make -j1 check
         fi
 
