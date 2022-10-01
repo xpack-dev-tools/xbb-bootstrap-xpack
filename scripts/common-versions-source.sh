@@ -212,14 +212,10 @@ function build_versions()
       # depends=('glibc')
       build_dos2unix "7.4.2"
 
-      if false # is_darwin && is_arm
+      if [ "${TARGET_PLATFORM}" == "darwin" ] && [ "${TARGET_ARCH}" == "arm64" ]
       then
-        # Still problematic, building GCC in XBB fails with missing __Z5yyendv...
-        :
+        : # Still problematic, fails to run
       else
-        # macOS 10.10 uses 2.5.3, an update is not mandatory.
-        # depends=('glibc' 'm4' 'sh')
-        # PATCH!
         build_flex "2.6.4"
       fi
 
