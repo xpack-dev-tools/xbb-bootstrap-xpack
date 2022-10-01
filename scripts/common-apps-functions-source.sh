@@ -1266,7 +1266,12 @@ function test_tar()
     echo "hello" >hello.txt
 
     run_app "${test_bin_folder_path}/tar" -czvf hello.tar.gz hello.txt
-    run_app "${test_bin_folder_path}/tar" -cJvf hello.tar.xz hello.txt
+    (
+      # For xz
+      xbb_activate_installed_bin
+
+      run_app "${test_bin_folder_path}/tar" -cJvf hello.tar.xz hello.txt
+    )
 
     mv hello.txt hello.txt.orig
 
@@ -1274,9 +1279,14 @@ function test_tar()
     run_app "${test_bin_folder_path}/tar" -xzvf hello.tar.gz hello.txt
     cmp hello.txt hello.txt.orig
 
-    rm hello.txt
-    run_app "${test_bin_folder_path}/tar" -xJvf hello.tar.xz hello.txt
-    cmp hello.txt hello.txt.orig
+    (
+      # For xz
+      xbb_activate_installed_bin
+
+      rm hello.txt
+      run_app "${test_bin_folder_path}/tar" -xJvf hello.tar.xz hello.txt
+      cmp hello.txt hello.txt.orig
+    )
 
   )
 }
