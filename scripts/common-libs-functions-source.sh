@@ -264,14 +264,10 @@ function build_libunistring()
           run_verbose make install
         fi
 
-        if [ "${WITH_TESTS}" == "y" ]
+        # It takes too long.
+        if false # [ "${WITH_TESTS}" == "y" ]
         then
-          if false # is_darwin && is_arm
-          then
-            : # Skip, test-lock.c: <stdin>:892:2: error: addend too big for relocation
-          else
-            run_verbose make -j1 check
-          fi
+          run_verbose make -j1 check
         fi
 
       ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${libunistring_folder_name}/make-output-$(ndate).txt"
