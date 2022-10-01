@@ -185,11 +185,11 @@ This command uses the `xpack-develop` branch of this repo.
 
 The builds take about 10 minutes to complete:
 
-- `xbbmi`: 6 min
-- `xbbma`: 3 min
-- `xbbli`: 5 min (no Windows)
-- `xbbla64`: 8 min
-- `xbbla32`: 8 min
+- `xbbmi`: 1h34
+- `xbbma`: 0h46
+- `xbbli`: 0h48 (no Windows)
+- `xbbla64`: 3h08 min
+- `xbbla32`: 3h43 min
 
 The workflow result and logs are available from the
 [Actions](https://github.com/xpack-dev-tools/xbb-bootstrap-xpack/actions/) page.
