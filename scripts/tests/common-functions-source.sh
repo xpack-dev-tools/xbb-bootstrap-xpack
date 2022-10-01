@@ -29,7 +29,6 @@ function run_tests()
 
   test_gnutls "${TEST_BIN_PATH}"
   test_patchelf "${TEST_BIN_PATH}"
-  test_findutils "${TEST_BIN_PATH}"
   test_gettext "${TEST_BIN_PATH}"
   test_python3 "${TEST_BIN_PATH}"
 
