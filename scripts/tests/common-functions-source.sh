@@ -35,7 +35,7 @@ function run_tests()
   test_pkg_config "${TEST_BIN_PATH}"
   test_curl "${TEST_BIN_PATH}"
   test_tar "${TEST_BIN_PATH}"
-  test_guile "${TEST_BIN_PATH}"
+  # test_guile "${TEST_BIN_PATH}"
   test_autogen "${TEST_BIN_PATH}"
   test_coreutils "${TEST_BIN_PATH}"
   test_m4 "${TEST_BIN_PATH}"
