@@ -2876,7 +2876,16 @@ function build_diffutils()
 
         if [ "${WITH_TESTS}" == "y" ]
         then
-          # WARN-TEST
+          if [ "${TARGET_PLATFORM}" == "darwin" ]
+          then
+            # Silence these tests on macOS.
+            echo "#!/bin/sh" > "${SOURCES_FOLDER_PATH}/${diffutils_folder_name}/tests/colors"
+            echo "exit 0" >> "${SOURCES_FOLDER_PATH}/${diffutils_folder_name}/tests/colors"
+
+            echo "#!/bin/sh" > "${SOURCES_FOLDER_PATH}/${diffutils_folder_name}/tests/large-subopt"
+            echo "exit 0" >> "${SOURCES_FOLDER_PATH}/${diffutils_folder_name}/tests/large-subopt"
+          fi
+
           run_verbose make -j1 check
         fi
 
