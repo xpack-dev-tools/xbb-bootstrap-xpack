@@ -812,25 +812,11 @@ function build_xorg_util_macros()
         "${xorg_util_macros_folder_name}"
     )
 
-    (
-      test_xorg_util_macros
-    ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${xorg_util_macros_folder_name}/test-output-$(ndate).txt"
-
     touch "${xorg_util_macros_stamp_file_path}"
 
   else
     echo "Library xorg_util_macros already installed."
   fi
-
-  tests_add "test_xorg_util_macros"
-}
-
-function test_xorg_util_macros()
-{
-  (
-    echo
-    echo "Nothing to test..."
-  )
 }
 
 # -----------------------------------------------------------------------------
@@ -962,25 +948,11 @@ function build_xorg_xproto()
         "${xorg_xproto_folder_name}"
     )
 
-    (
-      test_xorg_xproto
-    ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${xorg_xproto_folder_name}/test-output-$(ndate).txt"
-
     touch "${xorg_xproto_stamp_file_path}"
 
   else
     echo "Library xorg_xproto already installed."
   fi
-
-  tests_add "test_xorg_xproto"
-}
-
-function test_xorg_xproto()
-{
-  (
-    echo
-    echo "Nothing to test..."
-  )
 }
 
 # -----------------------------------------------------------------------------
