@@ -59,8 +59,18 @@ function build_versions()
       build_mpfr "4.1.0"
       # depends=('mpfr')
       build_mpc "1.2.1"
-      # depends=('gmp')
-      build_isl "0.24"
+
+      (
+        if [ "${TARGET_PLATFORM}" == "darwin" ]
+        then
+          # The GCC linker fails with an assert:
+          # ld: Assertion failed: (_file->_atomsArrayCount == computedAtomCount && "more atoms allocated than expected"), function parse, file macho_relocatable_file.cpp, line 2061.
+          prepare_clang_env "" ""
+        fi
+
+        # depends=('gmp')
+        build_isl "0.24"
+      )
 
       # -----------------------------------------------------------------------
 
