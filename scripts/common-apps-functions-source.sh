@@ -1178,24 +1178,6 @@ function build_guile()
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${guile_src_folder_name}/configure" \
             "${config_options[@]}"
 
-if false
-then
-          # FAIL: test-out-of-memory
-          # https://lists.gnu.org/archive/html/guile-user/2017-11/msg00062.html
-          # Remove the failing test.
-          run_verbose sed -i.bak \
-            -e 's|test-out-of-memory||g' \
-            "test-suite/standalone/Makefile"
-
-          if is_darwin
-          then
-            # ERROR: posix.test: utime: AT_SYMLINK_NOFOLLOW - arguments: ((out-of-range "utime" "Value out of range: ~S" (32) (32)))
-            # Not effective, tests disabled.
-            run_verbose sed -i.bak \
-              -e 's|tests/posix.test||' \
-              "test-suite/Makefile"
-          fi
-fi
 
           cp "config.log" "${LOGS_FOLDER_PATH}/${guile_folder_name}/config-log-$(ndate).txt"
         ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${guile_folder_name}/configure-output-$(ndate).txt"
@@ -1398,24 +1380,6 @@ function build_autogen()
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${autogen_src_folder_name}/configure" \
             "${config_options[@]}"
 
-if false
-then
-          # FAIL: cond.test
-          # FAILURE: warning diffs:  'undefining SECOND' not found
-          run_verbose sed -i.bak \
-            -e 's|cond.test||g' \
-            "autoopts/test/Makefile"
-
-          if is_linux
-          then
-            patch_all_libtool_rpath
-
-            run_verbose find . \
-              -name Makefile \
-              -print \
-              -exec sed -i.bak -e "s|-Wl,-rpath -Wl,${INSTALL_FOLDER_PATH}/lib||" {} \;
-          fi
-fi
           cp "config.log" "${LOGS_FOLDER_PATH}/${autogen_folder_name}/config-log-$(ndate).txt"
         ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${autogen_folder_name}/configure-output-$(ndate).txt"
       fi
@@ -2577,7 +2541,7 @@ function build_automake()
         # ...
         if false # [ "${RUN_LONG_TESTS}" == "y" ]
         then
-          make -j1 check
+          run_verbose make -j1 check
         fi
 
       ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${automake_folder_name}/make-output-$(ndate).txt"
@@ -4565,13 +4529,6 @@ function build_tcl()
             run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${tcl_src_folder_name}/unix/configure" \
               "${config_options[@]}"
 
-if false
-then
-            run_verbose find . \
-              \( -name Makefile -o -name tclConfig.sh \) \
-              -print \
-              -exec sed -i.bak -e 's|-Wl,-rpath,${LIB_RUNTIME_DIR}||' {} \;
-fi
           elif [ "${TARGET_PLATFORM}" == "darwin" ]
           then
 
