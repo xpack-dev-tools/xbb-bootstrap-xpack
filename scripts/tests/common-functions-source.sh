@@ -22,7 +22,52 @@ function run_tests()
   echo
   env | sort
 
-  # test_xxx
+  if [ "${TARGET_PLATFORM}" == "darwin" ]
+  then
+    test_realpath "${TEST_BIN_PATH}"
+  fi
+
+  test_gnutls "${TEST_BIN_PATH}"
+  test_patchelf "${TEST_BIN_PATH}"
+  test_findutils "${TEST_BIN_PATH}"
+  test_gettext "${TEST_BIN_PATH}"
+  test_python3 "${TEST_BIN_PATH}"
+
+  test_pkg_config "${TEST_BIN_PATH}"
+  test_curl "${TEST_BIN_PATH}"
+  test_tar "${TEST_BIN_PATH}"
+  test_guile "${TEST_BIN_PATH}"
+  test_autogen "${TEST_BIN_PATH}"
+  test_coreutils "${TEST_BIN_PATH}"
+  test_m4 "${TEST_BIN_PATH}"
+  test_gawk "${TEST_BIN_PATH}"
+  test_sed "${TEST_BIN_PATH}"
+  test_autoconf "${TEST_BIN_PATH}"
+  test_automake "${TEST_BIN_PATH}"
+  test_patch "${TEST_BIN_PATH}"
+  test_diffutils "${TEST_BIN_PATH}"
+  test_bison "${TEST_BIN_PATH}"
+  test_make "${TEST_BIN_PATH}"
+  test_bash "${TEST_BIN_PATH}"
+  test_wget "${TEST_BIN_PATH}"
+  test_texinfo "${TEST_BIN_PATH}"
+  test_dos2unix "${TEST_BIN_PATH}"
+
+  if [ "${TARGET_PLATFORM}" == "darwin" ] && [ "${TARGET_ARCH}" == "arm64" ]
+  then
+    :
+  else
+    test_flex "${TEST_BIN_PATH}"
+  fi
+
+  test_perl "${TEST_BIN_PATH}"
+  test_tcl "${TEST_BIN_PATH}"
+
+  test_p7zip "${TEST_BIN_PATH}"
+  test_rhash "${TEST_BIN_PATH}"
+  test_re2c "${TEST_BIN_PATH}"
+  test_gpg "${TEST_BIN_PATH}"
+  test_makedepend "${TEST_BIN_PATH}"
 }
 
 function update_image()
