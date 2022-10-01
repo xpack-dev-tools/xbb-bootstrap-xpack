@@ -1244,17 +1244,19 @@ function test_guile_libs()
 
 function test_guile()
 {
+  local test_bin_folder_path="$1"
+
   (
     echo
     echo "Checking the guile shared libraries..."
 
-    show_libs "${BINS_INSTALL_FOLDER_PATH}/bin/guile"
+    show_libs "${test_bin_folder_path}/guile"
 
     echo
     echo "Testing if guile binaries start properly..."
 
-    run_app "${BINS_INSTALL_FOLDER_PATH}/bin/guile" --version
-    run_app "${BINS_INSTALL_FOLDER_PATH}/bin/guile-config" --version
+    run_app "${test_bin_folder_path}/guile" --version
+    run_app "${test_bin_folder_path}/guile-config" --version
   )
 }
 
