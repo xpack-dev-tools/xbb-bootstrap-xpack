@@ -1596,11 +1596,18 @@ function build_coreutils()
         # Build.
         run_verbose make -j ${JOBS}
 
-        if [ "${WITH_STRIP}" == "y" ]
+        if [ "${TARGET_PLATFORM}" == "darwin" ]
         then
-          run_verbose make install-strip
-        else
+          # Strip fails with:
+          # 2022-10-01T12:53:19.6394770Z /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip: error: symbols referenced by indirect symbol table entries that can't be stripped in: /Users/ilg/Work/xbb-bootstrap-4.0/darwin-arm64/install/xbb-bootstrap/libexec/coreutils/_inst.24110_
           run_verbose make install
+        else
+          if [ "${WITH_STRIP}" == "y" ]
+          then
+            run_verbose make install-strip
+          else
+            run_verbose make install
+          fi
         fi
 
         # Takes very long and fails.
