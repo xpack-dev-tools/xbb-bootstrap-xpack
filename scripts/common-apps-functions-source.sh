@@ -636,6 +636,7 @@ function test_curl()
 
     run_app "${test_bin_folder_path}/curl" \
       -L https://github.com/xpack-dev-tools/.github/raw/master/README.md \
+      --insecure \
       --output test-output.md
   )
 }
