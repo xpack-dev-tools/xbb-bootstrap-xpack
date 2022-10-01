@@ -4,15 +4,25 @@
 
 # The xPack XBB Bootstrap
 
-A standalone cross-platform (Windows/macOS/Linux) **XBB Bootstrap**
+A standalone cross-platform (macOS/Linux) **XBB Bootstrap**
 binary distribution, intended for reproducible builds.
 
-It includes most of the tools available in the XBB Docker images,
+It includes most of the tools available in the XBB Docker v3.4 images,
 and is intended to be used to bootstrap the creation of separate
 packages with these tools.
 
 In addition to the the binary archives and the package meta data,
 this project also includes the build scripts.
+
+## Early deprecation notice
+
+This package is not recommended for new designs. It will be used
+as a direct replacement for the Docker images, to build all existing
+binary xPacks.
+
+Once the new build scripts are functional, the plan is to move
+components out as separate packages, to the point when there will be
+no components left, when this package will be retired.
 
 ## Overview
 
@@ -68,8 +78,7 @@ This command will:
 - install the latest available version,
 into the central xPacks store, if not already there
 - add symbolic links to the central store
-(or `.cmd` forwarders on Windows) into
-the local `xpacks/.bin` folder.
+into the local `xpacks/.bin` folder.
 
 The central xPacks store is a platform dependent
 folder; check the output of the `xpm` command for the actual
