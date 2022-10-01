@@ -27,7 +27,7 @@ function build_versions()
   BINS_INSTALL_FOLDER_PATH="${APP_INSTALL_FOLDER_PATH}"
 
   # Keep them in sync with combo archive content.
-  if [[ "${RELEASE_VERSION}" =~ 4\.0\.0 ]]
+  if [[ "${RELEASE_VERSION}" =~ 4\.0 ]]
   then
     (
       libtool_version="2.4.6"
