@@ -316,7 +316,7 @@ function build_gc()
 
   local gc_folder_name="${gc_src_folder_name}"
 
-  local gc_patch_file_path="${helper_folder_path}/patches/${gc_folder_name}.patch.diff"
+  local gc_patch_file_name="${gc_folder_name}.patch.diff"
   local gc_stamp_file_path="${STAMPS_FOLDER_PATH}/stamp-${gc_folder_name}-installed"
   if [ ! -f "${gc_stamp_file_path}" ]
   then
@@ -324,7 +324,7 @@ function build_gc()
     cd "${SOURCES_FOLDER_PATH}"
 
     download_and_extract "${gc_url}" "${gc_archive}" \
-      "${gc_src_folder_name}" "${gc_patch_file_path}"
+      "${gc_src_folder_name}" "${gc_patch_file_name}"
 
     mkdir -pv "${LOGS_FOLDER_PATH}/${gc_folder_name}"
 
@@ -1337,7 +1337,7 @@ function build_libksba()
 
   local libksba_folder_name="${libksba_src_folder_name}"
 
-  local libksba_patch_file_path="${helper_folder_path}/patches/${libksba_folder_name}.patch"
+  local libksba_patch_file_name="${libksba_folder_name}.patch"
 
   local libksba_stamp_file_path="${STAMPS_FOLDER_PATH}/stamp-${libksba_folder_name}-installed"
   if [ ! -f "${libksba_stamp_file_path}" ]
@@ -1346,7 +1346,7 @@ function build_libksba()
     cd "${SOURCES_FOLDER_PATH}"
 
     download_and_extract "${libksba_url}" "${libksba_archive}" \
-      "${libksba_src_folder_name}" "${libksba_patch_file_path}"
+      "${libksba_src_folder_name}" "${libksba_patch_file_name}"
 
     mkdir -pv "${LOGS_FOLDER_PATH}/${libksba_folder_name}"
 
@@ -1814,7 +1814,7 @@ function build_xorg_xproto()
   local xorg_xproto_folder_name="${xorg_xproto_src_folder_name}"
 
   # Add aarch64 to the list of Arm architectures.
-  local xorg_xproto_patch_file_path="${helper_folder_path}/patches/${xorg_xproto_folder_name}.patch"
+  local xorg_xproto_patch_file_name="${xorg_xproto_folder_name}.patch"
   local xorg_xproto_stamp_file_path="${STAMPS_FOLDER_PATH}/stamp-${xorg_xproto_folder_name}-installed"
   if [ ! -f "${xorg_xproto_stamp_file_path}" ]
   then
@@ -1822,7 +1822,7 @@ function build_xorg_xproto()
     cd "${SOURCES_FOLDER_PATH}"
 
     download_and_extract "${xorg_xproto_url}" "${xorg_xproto_archive}" \
-      "${xorg_xproto_src_folder_name}" "${xorg_xproto_patch_file_path}"
+      "${xorg_xproto_src_folder_name}" "${xorg_xproto_patch_file_name}"
 
     mkdir -pv "${LOGS_FOLDER_PATH}/${xorg_xproto_folder_name}"
 

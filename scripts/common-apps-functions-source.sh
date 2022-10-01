@@ -1323,7 +1323,7 @@ function build_libtool()
 
   local libtool_folder_name="libtool${step}-${libtool_version}"
 
-  local libtool_patch_file_path="${helper_folder_path}/patches/${libtool_folder_name}.patch"
+  local libtool_patch_file_name="${libtool_folder_name}.patch"
 
   local libtool_stamp_file_path="${STAMPS_FOLDER_PATH}/stamp-${libtool_folder_name}-installed"
   if [ ! -f "${libtool_stamp_file_path}" ]
@@ -1332,7 +1332,7 @@ function build_libtool()
     cd "${SOURCES_FOLDER_PATH}"
 
     download_and_extract "${libtool_url}" "${libtool_archive}" \
-      "${libtool_src_folder_name}" "${libtool_patch_file_path}"
+      "${libtool_src_folder_name}" "${libtool_patch_file_name}"
 
     mkdir -pv "${LOGS_FOLDER_PATH}/${libtool_folder_name}"
 
@@ -2171,7 +2171,7 @@ function build_m4()
 
   local m4_folder_name="${m4_src_folder_name}"
 
-  local m4_patch_file_path="${helper_folder_path}/patches/${m4_folder_name}.patch"
+  local m4_patch_file_name="${m4_folder_name}.patch"
   local m4_stamp_file_path="${STAMPS_FOLDER_PATH}/stamp-${m4_folder_name}-installed"
   if [ ! -f "${m4_stamp_file_path}" ]
   then
@@ -2180,7 +2180,7 @@ function build_m4()
 
     download_and_extract "${m4_url}" "${m4_archive}" \
       "${m4_src_folder_name}" \
-      "${m4_patch_file_path}"
+      "${m4_patch_file_name}"
 
     mkdir -pv "${LOGS_FOLDER_PATH}/${m4_folder_name}"
 
@@ -2912,7 +2912,7 @@ function build_automake()
   # help2man: can't get `--help' info from automake-1.16
   # Try `--no-discard-stderr' if option outputs to stderr
 
-  local automake_patch_file_path="${helper_folder_path}/patches/${automake_folder_name}.patch"
+  local automake_patch_file_name="${automake_folder_name}.patch"
   local automake_stamp_file_path="${STAMPS_FOLDER_PATH}/stamp-${automake_folder_name}-installed"
   if [ ! -f "${automake_stamp_file_path}" ]
   then
@@ -2921,7 +2921,7 @@ function build_automake()
 
     download_and_extract "${automake_url}" "${automake_archive}" \
       "${automake_src_folder_name}" \
-      "${automake_patch_file_path}"
+      "${automake_patch_file_name}"
 
     mkdir -pv "${LOGS_FOLDER_PATH}/${automake_folder_name}"
 
@@ -3612,7 +3612,7 @@ function build_make()
   # glob/libglob.a(glob.o): In function `glob_in_dir':
   # glob.c:(.text.glob_in_dir+0x90): undefined reference to `__alloca'
 
-  local make_patch_file_path="${helper_folder_path}/patches/${make_folder_name}.patch"
+  local make_patch_file_name="${make_folder_name}.patch"
   local make_stamp_file_path="${STAMPS_FOLDER_PATH}/stamp-${make_folder_name}-installed"
   if [ ! -f "${make_stamp_file_path}" ]
   then
@@ -3621,7 +3621,7 @@ function build_make()
 
     download_and_extract "${make_url}" "${make_archive}" \
       "${make_src_folder_name}" \
-      "${make_patch_file_path}"
+      "${make_patch_file_name}"
 
     mkdir -pv "${LOGS_FOLDER_PATH}/${make_folder_name}"
 
@@ -4467,7 +4467,7 @@ function build_flex()
 
   local flex_folder_name="${flex_src_folder_name}"
 
-  local flex_patch_file_path="${helper_folder_path}/patches/${flex_folder_name}.patch"
+  local flex_patch_file_name="${flex_folder_name}.git.patch"
   local flex_stamp_file_path="${STAMPS_FOLDER_PATH}/stamp-${flex_folder_name}-installed"
   if [ ! -f "${flex_stamp_file_path}" ]
   then
@@ -4476,7 +4476,7 @@ function build_flex()
 
     download_and_extract "${flex_url}" "${flex_archive}" \
       "${flex_src_folder_name}" \
-      "${flex_patch_file_path}"
+      "${flex_patch_file_name}"
 
     mkdir -pv "${LOGS_FOLDER_PATH}/${flex_folder_name}"
 
@@ -4694,7 +4694,7 @@ function build_perl()
 
   # Fix an incompatibility with libxcrypt and glibc.
   # https://groups.google.com/forum/#!topic/perl.perl5.porters/BTMp2fQg8q4
-  local perl_patch_file_path="${helper_folder_path}/patches/${perl_folder_name}.patch"
+  local perl_patch_file_name="${perl_folder_name}.patch"
   local perl_stamp_file_path="${STAMPS_FOLDER_PATH}/stamp-${perl_folder_name}-installed"
   if [ ! -f "${perl_stamp_file_path}" ]
   then
@@ -4707,7 +4707,7 @@ function build_perl()
 
       download_and_extract "${perl_url}" "${perl_archive}" \
         "${perl_src_folder_name}" \
-        "${perl_patch_file_path}"
+        "${perl_patch_file_name}"
 
       if [ "${perl_src_folder_name}" != "${perl_folder_name}" ]
       then
@@ -5317,7 +5317,7 @@ function build_p7zip()
 
   local p7zip_folder_name="p7zip-${p7zip_version}"
 
-  local p7zip_patch_file_name="${helper_folder_path}/patches/p7zip-${p7zip_version}.patch"
+  local p7zip_patch_file_name="p7zip-${p7zip_version}.patch"
   local p7zip_stamp_file_path="${STAMPS_FOLDER_PATH}/stamp-${p7zip_folder_name}-installed"
   if [ ! -f "${p7zip_stamp_file_path}" ]
   then
