@@ -32,12 +32,8 @@ For native builds, see the `build-native.sh` script.
   xPack build helper, used as the `scripts/helper` submodule.
 - <https://github.com/xpack-dev-tools/xbb-bootstrap.git> - the URL of the
   [xPack XBB Bootstrap fork](https://github.com/xpack-dev-tools/xbb-bootstrap)
-- <git://git.code.sf.net/p/xbb-bootstrap/code> - the URL of the
-  [upstream XBB Bootstrap](http://xbb-bootstrap.org).
 
-The build scripts use the first repo; to merge
-changes from upstream it is necessary to add a remote named
-`upstream`, and merge the `upstream/master` into the local `master`.
+The build scripts use the first repo.
 
 ### Branches
 

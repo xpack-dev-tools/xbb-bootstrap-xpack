@@ -2,7 +2,9 @@
 
 ## Release schedule
 
-The xPack XBB Bootstrap project has no schedules.
+The xPack XBB Bootstrap project has no schedules. Next releases will
+most probably include less and less components, as they will be
+moved to separate binary xPacks.
 
 ## Prepare the build
 
@@ -43,10 +45,9 @@ With a git client, go to the helper repo and update to the latest master commit.
 
 ### Increase the version
 
-Determine the version (like `4.0.0`) and update the `scripts/VERSION`
-file; the format is `4.0.0`. The fourth number is the xPack release number
-of this version. A fifth number will be added when publishing
-the package on the `npm` server.
+Determine the version (like `4.0`) and update the `scripts/VERSION`
+file; the format is `4.0`. The first two numbers are the XBB version;
+the third is added when published on the `npm` server.
 
 ### Fix possible open issues
 
@@ -54,7 +55,7 @@ Check GitHub issues and pull requests:
 
 - <https://github.com/xpack-dev-tools/xbb-bootstrap-xpack/issues/>
 
-and fix them; assign them to a milestone (like `4.0.0`).
+and fix them; assign them to a milestone (like `4.0`).
 
 ### Check `README.md`
 
@@ -72,8 +73,8 @@ but in the version specific release page.
 
 - open the `CHANGELOG.md` file
 - check if all previous fixed issues are in
-- add a new entry like _* v4.0.0 prepared_
-- commit with a message like _prepare v4.0.0_
+- add a new entry like _* v4.0 prepared_
+- commit with a message like _prepare v4.0_
 
 Note: if you missed to update the `CHANGELOG.md` before starting the build,
 edit the file and rerun the build, it should take only a few minutes to
@@ -186,7 +187,7 @@ The builds take about 10 minutes to complete:
 
 - `xbbmi`: 6 min
 - `xbbma`: 3 min
-- `xbbli`: 5 min (Windows included)
+- `xbbli`: 5 min (no Windows)
 - `xbbla64`: 8 min
 - `xbbla32`: 8 min
 
@@ -261,7 +262,7 @@ The test results are available from
 
 ## Create a new GitHub pre-release draft
 
-- in `CHANGELOG.md`, add the release date and a message like _* v4.0.0 released_
+- in `CHANGELOG.md`, add the release date and a message like _* v4.0 released_
 - commit with _CHANGELOG update_
 - check and possibly update the `templates/body-github-release-liquid.md`
 - push the `xpack-develop` branch
@@ -272,8 +273,8 @@ The workflow result and logs are available from the
 
 The result is a
 [draft pre-release](https://github.com/xpack-dev-tools/xbb-bootstrap-xpack/releases/)
-tagged like **v4.0.0** (mind the dash in the middle!) and
-named like **xPack XBB Bootstrap v4.0.0** (mind the dash),
+tagged like **v4.0** (mind the dash in the middle!) and
+named like **xPack XBB Bootstrap v4.0** (mind the dash),
 with all binaries attached.
 
 - edit the draft and attach it to the `xpack-develop` branch (important!)
@@ -296,7 +297,7 @@ If any, refer to closed
 ## Update the preview Web
 
 - commit the `develop` branch of `xpack/web-jekyll` GitHub repo;
-  use a message like _xPack XBB Bootstrap v4.0.0 released_
+  use a message like _xPack XBB Bootstrap v4.0 released_
 - push to GitHub
 - wait for the GitHub Pages build to complete
 - the preview web is <https://xpack.github.io/web-preview/news/>
@@ -338,18 +339,18 @@ watching this project.
 - compare the SHA sums with those shown by `cat *.sha`
 - check the executable names
 - commit all changes, use a message like
-  _package.json: update urls for 4.0.0 release_ (without _v_)
+  _package.json: update urls for 4.0 release_ (without _v_)
 
 ## Publish on the npmjs.com server
 
 - select the `xpack-develop` branch
 - check the latest commits `npm run git-log`
 - update `CHANGELOG.md`, add a line like _* v4.0.0 published on npmjs.com_
-- commit with a message like _CHANGELOG: publish npm v4.0.0-1_
+- commit with a message like _CHANGELOG: publish npm v4.0.0_
 - `npm pack` and check the content of the archive, which should list
   only the `package.json`, the `README.md`, `LICENSE` and `CHANGELOG.md`;
   possibly adjust `.npmignore`
-- `npm version 4.0.0-1`; the first 3 numbers are the same as the
+- `npm version 4.0.0`; the first 3 numbers are the same as the
   GitHub release; the fourth number is the npm specific version
 - the commits and the tag should have been pushed by the `postversion` script;
   if not, push them with `git push origin --tags`
@@ -383,7 +384,7 @@ When the release is considered stable, promote it as `latest`:
 
 In case the previous version is not functional and needs to be unpublished:
 
-- `npm unpublish @xpack-dev-tools/xbb-bootstrap@4.0.0-X`
+- `npm unpublish @xpack-dev-tools/xbb-bootstrap@4.0.X`
 
 ## Update the Web
 
