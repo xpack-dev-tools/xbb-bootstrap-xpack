@@ -1472,7 +1472,7 @@ function test_libtool_libs()
   echo
   echo "Checking the libtool shared libraries..."
 
-  show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/libltdl.${SHLIB_EXT})"
+  show_libs "${LIBS_INSTALL_FOLDER_PATH}/lib/libltdl.${SHLIB_EXT}"
 }
 
 function test_libtool()
@@ -1681,8 +1681,8 @@ function test_guile_libs()
   echo
   echo "Checking the guile shared libraries..."
 
-  show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/libguile-2.2.${SHLIB_EXT})"
-  show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/guile/2.2/extensions/guile-readline.so)"
+  show_libs "${LIBS_INSTALL_FOLDER_PATH}/lib/libguile-2.2.${SHLIB_EXT}"
+  show_libs "${LIBS_INSTALL_FOLDER_PATH}/lib/guile/2.2/extensions/guile-readline.so"
 }
 
 function test_guile()
@@ -1888,7 +1888,7 @@ fi
 
 function test_autogen_libs()
 {
-  show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/libopts.${SHLIB_EXT})"
+  show_libs "${LIBS_INSTALL_FOLDER_PATH}/lib/libopts.${SHLIB_EXT}"
 }
 
 function test_autogen()
@@ -4623,7 +4623,7 @@ function test_flex()
     echo "Checking the flex shared libraries..."
 
     show_libs "${test_bin_folder_path}/flex"
-    show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/libfl.${SHLIB_EXT})"
+    show_libs "${LIBS_INSTALL_FOLDER_PATH}/lib/libfl.${SHLIB_EXT}"
 
     echo
     echo "Testing if flex binaries start properly..."
@@ -5636,9 +5636,9 @@ function test_rhash_libs()
 
   if [ "${TARGET_PLATFORM}" == "darwin" ]
   then
-    show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/librhash.0.dylib)"
+    show_libs "${LIBS_INSTALL_FOLDER_PATH}/lib/librhash.0.dylib"
   else
-    show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/librhash.so.0)"
+    show_libs "${LIBS_INSTALL_FOLDER_PATH}/lib/librhash.so.0"
   fi
 }
 

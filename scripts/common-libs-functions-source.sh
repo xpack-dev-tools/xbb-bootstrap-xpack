@@ -464,9 +464,9 @@ function test_gc_libs()
     echo
     echo "Checking the gc shared libraries..."
 
-    show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/libgc.${SHLIB_EXT})"
-    show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/libgccpp.${SHLIB_EXT})"
-    show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/libcord.${SHLIB_EXT})"
+    show_libs "${LIBS_INSTALL_FOLDER_PATH}/lib/libgc.${SHLIB_EXT}"
+    show_libs "${LIBS_INSTALL_FOLDER_PATH}/lib/libgccpp.${SHLIB_EXT}"
+    show_libs "${LIBS_INSTALL_FOLDER_PATH}/lib/libcord.${SHLIB_EXT}"
   )
 }
 
@@ -928,7 +928,7 @@ function test_libgpg_error_libs()
   echo
   echo "Checking the libpng_error shared libraries..."
 
-  show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/libgpg-error.${SHLIB_EXT})"
+  show_libs "${LIBS_INSTALL_FOLDER_PATH}/lib/libgpg-error.${SHLIB_EXT}"
 }
 
 # -----------------------------------------------------------------------------
@@ -1112,7 +1112,7 @@ function test_libgcrypt_libs()
   show_libs "${LIBS_INSTALL_FOLDER_PATH}/bin/hmac256"
   show_libs "${LIBS_INSTALL_FOLDER_PATH}/bin/mpicalc"
 
-  show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/libgcrypt.${SHLIB_EXT})"
+  show_libs "${LIBS_INSTALL_FOLDER_PATH}/lib/libgcrypt.${SHLIB_EXT}"
 }
 
 function test_libgcrypt()
@@ -1298,7 +1298,7 @@ function test_libassuan_libs()
   echo "Checking the libassuan shared libraries..."
 
   # show_libs "${INSTALL_FOLDER_PATH}/bin/libassuan-config"
-  show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/libassuan.${SHLIB_EXT})"
+  show_libs "${LIBS_INSTALL_FOLDER_PATH}/lib/libassuan.${SHLIB_EXT}"
 }
 
 function test_libassuan()
@@ -1464,7 +1464,7 @@ function test_libksba_libs()
   echo "Checking the libksba shared libraries..."
 
   # show_libs "${INSTALL_FOLDER_PATH}/bin/ksba-config"
-  show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/libksba.${SHLIB_EXT})"
+  show_libs "${LIBS_INSTALL_FOLDER_PATH}/lib/libksba.${SHLIB_EXT}"
 }
 
 function test_libksba()
@@ -1628,7 +1628,7 @@ function test_npth_libs()
   echo
   echo "Checking the npth shared libraries..."
 
-  show_libs "$(realpath ${LIBS_INSTALL_FOLDER_PATH}/lib/libnpth.${SHLIB_EXT})"
+  show_libs "${LIBS_INSTALL_FOLDER_PATH}/lib/libnpth.${SHLIB_EXT}"
 }
 
 function test_npth()
