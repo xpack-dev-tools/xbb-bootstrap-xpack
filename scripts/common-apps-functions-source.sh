@@ -4796,20 +4796,18 @@ function build_p7zip()
         run_verbose cp -v "makefile.macosx_llvm_64bits" "makefile.machine"
       fi
 
-      run_verbose make all3 \
+      run_verbose make -j ${JOBS} all3 \
         CC="${CC} ${CPPFLAGS} ${CFLAGS}" \
         CXX="${CXX} ${CPPFLAGS} ${CXXFLAGS}" \
-
 
       # Otherwise the install script will ask to delete it.
       run_verbose rm -rf "${LIBS_INSTALL_FOLDER_PATH}/share/man/man1/"7z*
 
-      run_verbose make \
+      run_verbose make -j1 \
         DEST_HOME="${LIBS_INSTALL_FOLDER_PATH}" \
         DEST_SHARE="${LIBS_INSTALL_FOLDER_PATH}/lib" \
         DEST_MAN="${LIBS_INSTALL_FOLDER_PATH}/share/man" \
         install
-
 
       if [ "${WITH_TESTS}" == "y" ]
       then
