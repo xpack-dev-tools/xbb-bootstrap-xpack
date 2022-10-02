@@ -237,7 +237,7 @@ function build_versions()
       # depends=('glibc')
       build_dos2unix "7.4.2"
 
-      if [ "${TARGET_PLATFORM}" == "darwin" ] && [ "${TARGET_ARCH}" == "arm64" ]
+      if false # [ "${TARGET_PLATFORM}" == "darwin" ] && [ "${TARGET_ARCH}" == "arm64" ]
       then
         : # Still problematic, fails to run
       else
