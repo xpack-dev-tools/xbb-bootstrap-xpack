@@ -4875,6 +4875,7 @@ function build_rhash()
   # 14 Dec 2019, "1.3.9"
   # Jan 7, 2021, "1.4.1"
   # Jul 15, 2021, "1.4.2"
+  # 14 Jun 2022, "1.4.3" # Apple Silicon support added
 
   local rhash_version="$1"
 

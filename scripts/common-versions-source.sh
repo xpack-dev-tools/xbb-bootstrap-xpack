@@ -279,7 +279,8 @@ function build_versions()
 
       # "1.4.[12]" fail on amd64 with
       # librhash/librhash.so.0: undefined reference to `aligned_alloc'
-      build_rhash "1.4.2"
+      # For Apple Silicon, use 1.4.3 or higher.
+      build_rhash "1.4.3" # "1.4.2"
 
       build_re2c "2.2"
 
