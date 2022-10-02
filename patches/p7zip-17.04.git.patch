@@ -1,0 +1,50 @@
+diff -ur p7zip-17.04-orig/check/check.sh p7zip-17.04/check/check.sh
+--- a/check/check.sh	2021-04-04 06:11:06.000000000 +0300
++++ b/check/check.sh	2022-10-02 21:48:16.000000000 +0300
+@@ -116,7 +116,7 @@
+
+ sure ${P7ZIP} a -t7z 7za433_7zip_Copy.7z 7za433_7zip_lzma -m0=Copy
+
+-sure ${P7ZIP} a -t7z 7za433_7zip_zstd.7z 7za433_7zip_lzma -m0=zstd -mx=22 # mx=level
++# sure ${P7ZIP} a -t7z 7za433_7zip_zstd.7z 7za433_7zip_lzma -m0=zstd -mx=22 # mx=level
+
+ sure ${P7ZIP} a -t7z 7za433_7zip_lz4.7z 7za433_7zip_lzma -m0=lz4 -mmt=on # mmt=multithreading mode
+
+@@ -238,9 +238,9 @@
+ sure diff -r 7za433_ref 7za433_7zip_lzma
+ sure rm -rf 7za433_7zip_lzma
+
+-sure ${P7ZIP} x 7za433_7zip_zstd.7z
+-sure diff -r 7za433_ref 7za433_7zip_lzma
+-sure rm -rf 7za433_7zip_lzma
++# sure ${P7ZIP} x 7za433_7zip_zstd.7z
++# sure diff -r 7za433_ref 7za433_7zip_lzma
++# sure rm -rf 7za433_7zip_lzma
+
+ sure ${P7ZIP} x 7za433_7zip_lz4.7z
+ sure diff -r 7za433_ref 7za433_7zip_lzma
+diff -ur p7zip-17.04-orig/check/check_7za.sh p7zip-17.04/check/check_7za.sh
+--- a/check/check_7za.sh	2021-04-04 06:11:06.000000000 +0300
++++ b/check/check_7za.sh	2022-10-02 21:48:02.000000000 +0300
+@@ -85,7 +85,7 @@
+
+ sure ${P7ZIP} a -m0=bzip2 7za433_7zip_bzip2.7z 7za433_7zip_bzip2
+
+-sure ${P7ZIP} a -t7z 7za433_7zip_zstd.7z 7za433_7zip_lzma -m0=zstd -mx=22 # mx=level
++# sure ${P7ZIP} a -t7z 7za433_7zip_zstd.7z 7za433_7zip_lzma -m0=zstd -mx=22 # mx=level
+
+ sure ${P7ZIP} a -m0=lz4 7za433_7zip_lz4.7z 7za433_7zip_lzma
+
+@@ -109,9 +109,9 @@
+ sure diff -r 7za433_ref 7za433_7zip_lzma
+ sure rm -rf 7za433_7zip_lzma
+
+-sure ${P7ZIP} x 7za433_7zip_zstd.7z
+-sure diff -r 7za433_ref 7za433_7zip_lzma
+-sure rm -rf 7za433_7zip_lzma
++# sure ${P7ZIP} x 7za433_7zip_zstd.7z
++# sure diff -r 7za433_ref 7za433_7zip_lzma
++# sure rm -rf 7za433_7zip_lzma
+
+ sure ${P7ZIP} x 7za433_7zip_lz4.7z
+ sure diff -r 7za433_ref 7za433_7zip_lzma
