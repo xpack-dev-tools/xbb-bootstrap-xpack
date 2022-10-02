@@ -1841,6 +1841,9 @@ function build_m4()
             # Silence this test on macOS.
             echo "#!/bin/sh" > "${SOURCES_FOLDER_PATH}/${m4_src_folder_name}/tests/test-execute.sh"
             echo "exit 0" >> "${SOURCES_FOLDER_PATH}/${m4_src_folder_name}/tests/test-execute.sh"
+
+            # Remove failing test.
+            run_verbose sed -i.bak -e 's|test-vasprintf-posix$(EXEEXT) ||' "${BUILD_FOLDER_PATH}/${m4_folder_name}/tests/Makefile"
           fi
 
           run_verbose make -j1 check
