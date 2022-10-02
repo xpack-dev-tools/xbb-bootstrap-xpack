@@ -371,6 +371,11 @@ function build_pkg_config()
           run_verbose make install
         fi
 
+        # Extra: pkg-config-verbose
+        run_verbose cp -v "${helper_folder_path}/extras/pkg-config-verbose" \
+          "${BINS_INSTALL_FOLDER_PATH}/bin"
+        run_verbose chmod +x "${BINS_INSTALL_FOLDER_PATH}/bin/pkg-config-verbose"
+
         if [ "${WITH_TESTS}" == "y" ]
         then
           run_verbose make -j1 check
@@ -412,6 +417,7 @@ function test_pkg_config()
     echo "Testing if pkg_config binaries start properly..."
 
     run_app "${test_bin_folder_path}/pkg-config" --version
+    run_app "${test_bin_folder_path}/pkg-config-verbose" --version
   )
 }
 
