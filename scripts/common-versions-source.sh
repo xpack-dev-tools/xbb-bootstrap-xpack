@@ -364,7 +364,7 @@ function build_versions()
         # build_meson "0.60.2"
       fi
 
-      rm -rfv "${APP_PREFIX}/man"
+      rm -rfv "${APP_PREFIX}/man" # bzip2
       rm -rfv "${APP_PREFIX}/share/doc"
       rm -rfv "${APP_PREFIX}/share/man"
       rm -rfv "${APP_PREFIX}/share/info"
