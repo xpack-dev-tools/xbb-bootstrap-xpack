@@ -151,7 +151,9 @@ function build_versions()
 
       (
         # Hmmm... Not standalone, it remembers xbb-gcc and other settings.
-        BINS_INSTALL_FOLDER_PATH="${LIBS_INSTALL_FOLDER_PATH}"
+        set_bins_install "${LIBS_INSTALL_FOLDER_PATH}"
+        tests_add set_bins_install "${LIBS_INSTALL_FOLDER_PATH}"
+
         # Required before guile.
         # TODO
         build_libtool "${libtool_version}"
@@ -172,8 +174,14 @@ function build_versions()
       # bash-5.1/bashline.c:65:10: fatal error: builtins/builtext.h: No such file or directory
       build_bash "5.1.8"
 
-      # Requires guile 2.x.
-      build_autogen "5.18.16"
+      (
+        # Hmmm... Not standalone, it remembers absolute paths.
+        set_bins_install "${LIBS_INSTALL_FOLDER_PATH}"
+        tests_add set_bins_install "${LIBS_INSTALL_FOLDER_PATH}"
+
+        # Requires guile 2.x.
+        build_autogen "5.18.16"
+      )
 
       # After autogen, requires libopts.so.25.
       # depends=('glibc' 'libidn2' 'libtasn1' 'libunistring' 'nettle' 'p11-kit' 'readline' 'zlib')
@@ -197,11 +205,18 @@ function build_versions()
       # depends ?
       build_sed "4.8"
 
-      # depends=('sh' 'perl' 'awk' 'm4' 'texinfo')
-      build_autoconf "2.71"
-      # depends=('sh' 'perl')
-      # PATCH!
-      build_automake "1.16.5"
+      (
+        # Hmmm... Not standalone, it remembers absolute paths.
+        set_bins_install "${LIBS_INSTALL_FOLDER_PATH}"
+        tests_add set_bins_install "${LIBS_INSTALL_FOLDER_PATH}"
+
+        # depends=('sh' 'perl' 'awk' 'm4' 'texinfo')
+        build_autoconf "2.71"
+        # depends=('sh' 'perl')
+
+        # PATCH!
+        build_automake "1.16.5"
+      )
 
       # depends=('glibc' 'attr')
       build_patch "2.7.6"
