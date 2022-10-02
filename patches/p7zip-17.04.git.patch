@@ -10,6 +10,15 @@ diff -ur p7zip-17.04-orig/check/check.sh p7zip-17.04/check/check.sh
 
  sure ${P7ZIP} a -t7z 7za433_7zip_lz4.7z 7za433_7zip_lzma -m0=lz4 -mmt=on # mmt=multithreading mode
 
+@@ -138,7 +138,7 @@
+
+ sure ${P7ZIP} a -t7z 7za433_7zip_lzma7.7z 7za433_7zip_lzma -m0=LZMA -mf=SPARC -mta=on # mta=last Access timestamps
+
+-sure ${P7ZIP} a -t7z 7za433_7zip.7z 7za433_7zip_lzma -m0=bcj -m1=zstd -mx=22
++# sure ${P7ZIP} a -t7z 7za433_7zip.7z 7za433_7zip_lzma -m0=bcj -m1=zstd -mx=22
+
+ sure ${P7ZIP} a -tzip 7za433_7zip_lzma.zip 7za433_7zip_lzma
+
 @@ -238,9 +238,9 @@
  sure diff -r 7za433_ref 7za433_7zip_lzma
  sure rm -rf 7za433_7zip_lzma
@@ -22,6 +31,19 @@ diff -ur p7zip-17.04-orig/check/check.sh p7zip-17.04/check/check.sh
 +# sure rm -rf 7za433_7zip_lzma
 
  sure ${P7ZIP} x 7za433_7zip_lz4.7z
+ sure diff -r 7za433_ref 7za433_7zip_lzma
+@@ -282,9 +282,9 @@
+ sure diff -r 7za433_ref 7za433_7zip_lzma
+ sure rm -rf 7za433_7zip_lzma
+
+-sure ${P7ZIP} x 7za433_7zip.7z
+-sure diff -r 7za433_ref 7za433_7zip_lzma
+-sure rm -rf 7za433_7zip_lzma
++# sure ${P7ZIP} x 7za433_7zip.7z
++# sure diff -r 7za433_ref 7za433_7zip_lzma
++# sure rm -rf 7za433_7zip_lzma
+
+ sure ${P7ZIP} x 7za433_7zip_lzma.zip
  sure diff -r 7za433_ref 7za433_7zip_lzma
 diff -ur p7zip-17.04-orig/check/check_7za.sh p7zip-17.04/check/check_7za.sh
 --- a/check/check_7za.sh	2021-04-04 06:11:06.000000000 +0300
