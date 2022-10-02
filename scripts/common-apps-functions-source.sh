@@ -4704,21 +4704,31 @@ function build_p7zip()
   # For future versions use the fork:
   # https://github.com/jinfeihan57/p7zip
 
+  # https://github.com/jinfeihan57/p7zip/archive/refs/tags/v17.04.tar.gz
+
+  # Deprecated
   # https://sourceforge.net/projects/p7zip/files/p7zip
   # https://sourceforge.net/projects/p7zip/files/p7zip/16.02/p7zip_16.02_src_all.tar.bz2/download
 
   # https://github.com/archlinux/svntogit-packages/blob/packages/p7zip/trunk/PKGBUILD
+  # https://archlinuxarm.org/packages/aarch64/p7zip/files/PKGBUILD
 
   # https://github.com/Homebrew/homebrew-core/blob/master/Formula/p7zip.rb
 
-  # 2016-07-14, "16.02" (latest)
+  # 2016-07-14, "16.02"
+  # 04 Apr 2021, "17.04"
 
   local p7zip_version="$1"
 
-  local p7zip_src_folder_name="p7zip_${p7zip_version}"
+  # local p7zip_src_folder_name="p7zip_${p7zip_version}"
 
-  local p7zip_archive="${p7zip_src_folder_name}_src_all.tar.bz2"
-  local p7zip_url="https://sourceforge.net/projects/p7zip/files/p7zip/${p7zip_version}/${p7zip_archive}"
+  # local p7zip_archive="${p7zip_src_folder_name}_src_all.tar.bz2"
+  # local p7zip_url="https://sourceforge.net/projects/p7zip/files/p7zip/${p7zip_version}/${p7zip_archive}"
+
+  local p7zip_src_folder_name="p7zip-${p7zip_version}"
+  local p7zip_archive="${p7zip_src_folder_name}.tar.gz"
+  local p7zip_github_archive="v${p7zip_version}.tar.gz"
+  local p7zip_url="https://github.com/jinfeihan57/p7zip/archive/refs/tags/${p7zip_github_archive}"
 
   local p7zip_folder_name="p7zip-${p7zip_version}"
 
@@ -4778,39 +4788,34 @@ function build_p7zip()
       echo
       echo "Running p7zip make..."
 
-      # Override the hard-coded gcc & g++.
-      sed -i.bak -e "s|CXX=g++.*|CXX=${CXX}|" "makefile.machine"
-      sed -i.bak -e "s|CC=gcc.*|CC=${CC}|" "makefile.machine"
+      if [ "${TARGET_PLATFORM}" == "darwin" ]
+      then
+        run_verbose cp -v "makefile.macosx_llvm_64bits" "makefile.machine"
+      fi
 
-      # Do not override the environment variables, append to them.
-      sed -i.bak -e "s|CFLAGS=|CFLAGS+=|" "makefile.glb"
-      sed -i.bak -e "s|CXXFLAGS=|CXXFLAGS+=|" "makefile.glb"
+      run_verbose make all3 \
+        CC="${CC} ${CPPFLAGS} ${CFLAGS}" \
+        CXX="${CXX} ${CPPFLAGS} ${CXXFLAGS}" \
 
-      # Build.
-      run_verbose make -j ${JOBS} 7za 7zr
 
-      run_verbose ls -lL "bin"
+      # Otherwise the install script will ask to delete it.
+      run_verbose rm -rf "${LIBS_INSTALL_FOLDER_PATH}/share/man/man1/"7z*
 
-      # Override the hard-coded '/usr/local'.
-      run_verbose sed -i.bak \
-        -e "s|DEST_HOME=/usr/local|DEST_HOME=${BINS_INSTALL_FOLDER_PATH}|" \
-        -e "s|DEST_SHARE=.*|DEST_SHARE=${LIBS_INSTALL_FOLDER_PATH}/lib|" \
-        -e "s|DEST_MAN=.*|DEST_MAN=${LIBS_INSTALL_FOLDER_PATH}/share/man|" \
-        "install.sh"
+      run_verbose make \
+        DEST_HOME="${LIBS_INSTALL_FOLDER_PATH}" \
+        DEST_SHARE="${LIBS_INSTALL_FOLDER_PATH}/lib" \
+        DEST_MAN="${LIBS_INSTALL_FOLDER_PATH}/share/man" \
+        install
 
-      run_verbose bash "install.sh"
 
       if [ "${WITH_TESTS}" == "y" ]
       then
-        if [ "${TARGET_PLATFORM}" == "darwin" ]
-        then
-          # 7z cannot load library on macOS.
-          run_verbose make -j1 test
-        else
-          # make -j1 test test_7z
-          run_verbose make -j1 all_test
-        fi
+        run_verbose make -j1 all_test
       fi
+
+      run_verbose install -c -m 755 "${LIBS_INSTALL_FOLDER_PATH}/lib/7z" "${BINS_INSTALL_FOLDER_PATH}/bin"
+      run_verbose install -c -m 755 "${LIBS_INSTALL_FOLDER_PATH}/lib/7za" "${BINS_INSTALL_FOLDER_PATH}/bin"
+      run_verbose install -c -m 755 "${LIBS_INSTALL_FOLDER_PATH}/lib/7zr" "${BINS_INSTALL_FOLDER_PATH}/bin"
 
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${p7zip_folder_name}/install-output-$(ndate).txt"
 
@@ -4841,46 +4846,16 @@ function test_p7zip()
     echo
     echo "Checking the 7za shared libraries..."
 
-    if [ -f "${test_bin_folder_path}/7za" ]
-    then
-      show_libs "${test_bin_folder_path}/7za"
-    fi
-
-    if [ -f "${test_bin_folder_path}/7z" ]
-    then
       show_libs "${test_bin_folder_path}/7z"
-    fi
-
-  if false
-  then
-    if [ -f "${test_bin_folder_path}/7z" ]
-    then
-      show_libs "${TEST_PATH}/lib/p7zip/7z"
-    fi
-
-    if [ -f "${TEST_PATH}/lib/p7zip/7z" ]
-    then
-      show_libs "${TEST_PATH}/lib/p7zip/7z"
-    fi
-    if [ -f "${TEST_PATH}/lib/p7zip/7za" ]
-    then
-      show_libs "${TEST_PATH}/lib/p7zip/7za"
-    fi
-    if [ -f "${TEST_PATH}/lib/p7zip/7zr" ]
-    then
-      show_libs "${TEST_PATH}/lib/p7zip/7zr"
-    fi
-  fi
+      show_libs "${test_bin_folder_path}/7za"
+      show_libs "${test_bin_folder_path}/7zr"
 
     echo
     echo "Testing if 7za binaries start properly..."
 
+    run_app "${test_bin_folder_path}/7z" --help
     run_app "${test_bin_folder_path}/7za" --help
-
-    if [ -f "${test_bin_folder_path}/7z" ]
-    then
-      run_app "${test_bin_folder_path}/7z" --help
-    fi
+    run_app "${test_bin_folder_path}/7zr" --help
   )
 }
 

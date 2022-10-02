@@ -274,7 +274,8 @@ function build_versions()
       # libexec/git-core takes 475 MB.
       # build_git "2.34.1"
 
-      build_p7zip "16.02"
+      # 17.04 is from a fork easier to build on macOS.
+      build_p7zip "17.04" # "16.02"
 
       # "1.4.[12]" fail on amd64 with
       # librhash/librhash.so.0: undefined reference to `aligned_alloc'
