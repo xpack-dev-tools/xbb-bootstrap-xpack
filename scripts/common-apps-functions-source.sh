@@ -527,9 +527,9 @@ function build_curl()
           # config_options+=("--with-libidn2") # HB
           # config_options+=("--with-librtmp") # HB
 
-         if false
-         then
-           config_options+=("--with-ca-bundle=${BINS_INSTALL_FOLDER_PATH}/openssl/ca-bundle.crt") # Arch
+          if false
+          then
+            config_options+=("--with-ca-bundle=${BINS_INSTALL_FOLDER_PATH}/openssl/ca-bundle.crt") # Arch
           else
             config_options+=("--without-ca-bundle") # HB
 
