@@ -37,10 +37,16 @@ function build_versions()
 
       xbb_activate
 
+      if [ "${TARGET_PLATFORM}" == "darwin" ]
+      then
+        prepare_clang_env
+      fi
+
       # -----------------------------------------------------------------------
 
       if [ "${TARGET_PLATFORM}" == "darwin" ]
       then
+        # Note: Makefile calls gcc explicitly.
         build_realpath "1.0.0"
       fi
 
@@ -61,11 +67,11 @@ function build_versions()
       build_mpc "1.2.1"
 
       (
-        if [ "${TARGET_PLATFORM}" == "darwin" ]
+        if [ "${TARGET_PLATFORM}" == "darwin" ] && [[ ${CC} =~ .*gcc.* ]]
         then
           # The GCC linker fails with an assert:
           # ld: Assertion failed: (_file->_atomsArrayCount == computedAtomCount && "more atoms allocated than expected"), function parse, file macho_relocatable_file.cpp, line 2061.
-          prepare_clang_env "" ""
+          prepare_clang_env
         fi
 
         # depends=('gmp')
@@ -77,8 +83,17 @@ function build_versions()
       # Replacement for the old libcrypt.so.1.
       build_libxcrypt "4.4.26"
 
-      # depends=('perl')
-      build_openssl "1.1.1q" # "1.1.1l"
+      (
+        if [ "${TARGET_PLATFORM}" == "darwin" ] && [[ ${CC} =~ .*gcc.* ]]
+        then
+          # The GCC linker fails with an assert:
+          # ld: Assertion failed: (_file->_atomsArrayCount == computedAtomCount && "more atoms allocated than expected"), function parse, file macho_relocatable_file.cpp, line 2061.
+          prepare_clang_env
+        fi
+
+        # depends=('perl')
+        build_openssl "1.1.1q" # "1.1.1l"
+      )
 
       # Libraries, required by gnutls.
       # depends=('glibc')
