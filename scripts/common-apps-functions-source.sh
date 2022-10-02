@@ -417,7 +417,10 @@ function test_pkg_config()
     echo "Testing if pkg_config binaries start properly..."
 
     run_app "${test_bin_folder_path}/pkg-config" --version
-    run_app "${test_bin_folder_path}/pkg-config-verbose" --version
+    (
+      xbb_activate_installed_bin
+      run_app "${test_bin_folder_path}/pkg-config-verbose" --version
+    )
   )
 }
 
