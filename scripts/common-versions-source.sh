@@ -258,6 +258,10 @@ function build_versions()
       # depends=('glibc')
       build_dos2unix "7.4.2"
 
+      # Most probably not needed.
+      # macOS 10.13: 2.5.35
+      # macOS 11.1: 2.6.4
+      # Ubuntu 18: 2.6.4
       if false # [ "${TARGET_PLATFORM}" == "darwin" ] && [ "${TARGET_ARCH}" == "arm64" ]
       then
         : # Still problematic, fails to run
