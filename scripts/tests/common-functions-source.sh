@@ -37,7 +37,7 @@ function run_tests()
   then
     :
   else
-    test_flex "${TEST_BIN_PATH}"
+    : # test_flex "${TEST_BIN_PATH}"
   fi
 
   test_gawk "${TEST_BIN_PATH}"
