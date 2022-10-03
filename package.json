@@ -35,28 +35,28 @@
     "minimumXpmRequired": "0.10.2",
     "binaries": {
       "destination": "./.content",
-      "baseUrl": "https://github.com/xpack-dev-tools/xbb-bootstrap-xpack/releases/download/v0.11.0-5",
+      "baseUrl": "https://github.com/xpack-dev-tools/xbb-bootstrap-xpack/releases/download/v4.0",
       "skip": 1,
       "platforms": {
         "darwin-arm64": {
-          "fileName": "xpack-xbb-bootstrap-4.0.0-darwin-arm64.tar.gz",
-          "sha256": "49ebc4bfbeb191dcb29f0a3ff03e2d4a1b9588b68093dc0159beeff6ab2a22be"
+          "fileName": "xpack-xbb-bootstrap-4.0-darwin-arm64.tar.gz",
+          "sha256": "ee1a9b3d5df6e6d9d5c6215d66bd1b80c81ea19724984b7386f05bd8a5fb9f45"
         },
         "darwin-x64": {
-          "fileName": "xpack-xbb-bootstrap-4.0.0-darwin-x64.tar.gz",
-          "sha256": "df33f2c46804031f895f5c83f984c6b5e05084770e0fe8feb034d91552861301"
+          "fileName": "xpack-xbb-bootstrap-4.0-darwin-x64.tar.gz",
+          "sha256": "13af2fc26d334321606cdbd4b7f8c97800a89f1461e60f701f2dadb40609979a"
         },
         "linux-arm64": {
-          "fileName": "xpack-xbb-bootstrap-4.0.0-linux-arm64.tar.gz",
-          "sha256": "bf8c128d8febc22108be3e75f16250054b636c92de2fd5a67d742cb58092a0fd"
+          "fileName": "xpack-xbb-bootstrap-4.0-linux-arm64.tar.gz",
+          "sha256": "94b7a734d0f75398279a2179f6046efa381a4665d3039e3d8bd6f6f25b33864d"
         },
         "linux-arm": {
-          "fileName": "xpack-xbb-bootstrap-4.0.0-linux-arm.tar.gz",
-          "sha256": "91d7076b3d078b91d0390996657539dcbb7794deaf8b1eec12928e395981b499"
+          "fileName": "xpack-xbb-bootstrap-4.0-linux-arm.tar.gz",
+          "sha256": "cf533d08d3c92c335b99cddd7aeb15dfcef55d0d3980ec57039ec3d1f167f34b"
         },
         "linux-x64": {
-          "fileName": "xpack-xbb-bootstrap-4.0.0-linux-x64.tar.gz",
-          "sha256": "19403370891605e1994e1eceb5e0c442f8c6fbc60b026851a6e257d524ecd6d1"
+          "fileName": "xpack-xbb-bootstrap-4.0-linux-x64.tar.gz",
+          "sha256": "8c64e44b2b02c8d59ded9120d787c223c020a0ac0f45b633b1012cd99b302673"
         }
       }
     },
