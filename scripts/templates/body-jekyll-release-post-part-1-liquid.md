@@ -22,8 +22,8 @@ tags:
 ---
 
 [The xPack XBB Bootstrap](https://xpack.github.io/xbb-bootstrap/)
-is a standalone cross-platform binary distribution of
-[XBB Bootstrap](http://xbb-bootstrap.org).
+is a temporary solution intended to replace the functionality
+provided by the XBB v3.4 Docker images.
 
 There are separate binaries for
 **macOS** (Intel 64-bit, Apple Silicon 64-bit)
@@ -81,16 +81,12 @@ To install this specific version, use:
 xpm install @xpack-dev-tools/xbb-bootstrap@{{ RELEASE_VERSION }}
 ```
 
-For xPacks aware tools, like the **Eclipse Embedded C/C++ plug-ins**,
+For xPacks aware tools,
 it is also possible to install XBB Bootstrap globally, in the user home folder.
 
 ```sh
 xpm install --global @xpack-dev-tools/xbb-bootstrap@latest
 ```
-
-Eclipse will automatically
-identify binaries installed with
-`xpm` and provide a convenient method to manage paths.
 
 ### Uninstall
 
@@ -161,9 +157,7 @@ relative path.
 
 ## Documentation
 
-The original documentation is available online:
-
-- <https://xbb-bootstrap.org/doc/pdf/xbb-bootstrap.pdf>
+The original documentation for the included components is available online.
 
 ## Build
 
