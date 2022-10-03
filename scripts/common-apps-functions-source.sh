@@ -2994,7 +2994,10 @@ int yylex () { cin.get(c); return c; }
 int main() { yyparse(); }
 __EOF__
 
-    run_app "${test_bin_folder_path}/bison" test.y -Wno-conflicts-sr
+    (
+      xbb_activate_installed_bin
+      run_app "${test_bin_folder_path}/bison" test.y -Wno-conflicts-sr
+    )
     run_verbose g++ test.tab.c -o test -w
 
     test_expect "pass" "bash" "-c" "(echo '((()(())))()' | ./test)"
