@@ -4018,6 +4018,7 @@ function build_flex()
     )
 
     (
+      test_flex_libs
       test_flex "${BINS_INSTALL_FOLDER_PATH}/bin"
     ) 2>&1 | tee "${LOGS_FOLDER_PATH}/${flex_folder_name}/test-output-$(ndate).txt"
 
@@ -4032,6 +4033,14 @@ function build_flex()
   tests_add "test_flex" "${BINS_INSTALL_FOLDER_PATH}/bin"
 }
 
+function test_flex_libs()
+{
+  echo
+  echo "Checking the flex shared libraries..."
+
+  show_libs "${LIBS_INSTALL_FOLDER_PATH}/lib/libfl.${SHLIB_EXT}"
+}
+
 function test_flex()
 {
   local test_bin_folder_path="$1"
@@ -4041,7 +4050,6 @@ function test_flex()
     echo "Checking the flex shared libraries..."
 
     show_libs "${test_bin_folder_path}/flex"
-    show_libs "${LIBS_INSTALL_FOLDER_PATH}/lib/libfl.${SHLIB_EXT}"
 
     echo
     echo "Testing if flex binaries start properly..."
