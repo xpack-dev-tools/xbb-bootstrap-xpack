@@ -108,6 +108,7 @@ function update_image()
     # Update even if up to date (-yy) & upgrade (-u).
     # pacman -S -yy -u -q --noconfirm
     run_verbose pacman -S -q --noconfirm --noprogressbar git curl tar gzip lsb-release binutils
+    run_verbose pacman -S -q --noconfirm --noprogressbar diffutils # For cmp
     run_verbose pacman -S -q --noconfirm --noprogressbar gcc gcc-libs
   fi
 }
