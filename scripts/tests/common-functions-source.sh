@@ -27,7 +27,7 @@ function run_tests()
   # test_automake "${TEST_BIN_PATH}"
 
   test_bash "${TEST_BIN_PATH}"
-  test_bison "${TEST_BIN_PATH}"
+ # test_bison "${TEST_BIN_PATH}"
   test_coreutils "${TEST_BIN_PATH}"
   test_curl "${TEST_BIN_PATH}"
   test_diffutils "${TEST_BIN_PATH}"
