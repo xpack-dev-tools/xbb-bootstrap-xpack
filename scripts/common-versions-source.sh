@@ -165,9 +165,15 @@ function build_versions()
       # depends=('glibc' 'glib2' 'libunistring' 'ncurses')
       build_gettext "0.21"
 
-      # depends=(gmp libltdl ncurses texinfo libunistring gc libffi)
-      # 3.x is too new, autogen requires 2.x
-      build_guile "2.2.7"
+      (
+        # Hmmm... It fails to start, it goes to a prompt no metter what.
+        set_bins_install "${LIBS_INSTALL_FOLDER_PATH}"
+        tests_add set_bins_install "${LIBS_INSTALL_FOLDER_PATH}"
+
+        # depends=(gmp libltdl ncurses texinfo libunistring gc libffi)
+        # 3.x is too new, autogen requires 2.x
+        build_guile "2.2.7"
+      )
 
       # depends=('readline>=7.0' glibc ncurses)
       # "5.1" fails on amd64 with:
