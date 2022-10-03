@@ -44,7 +44,7 @@ function run_tests()
   test_gettext "${TEST_BIN_PATH}"
   test_gnutls "${TEST_BIN_PATH}"
   test_gpg "${TEST_BIN_PATH}"
-  test_guile "${TEST_BIN_PATH}"
+ # test_guile "${TEST_BIN_PATH}"
   test_m4 "${TEST_BIN_PATH}"
   test_make "${TEST_BIN_PATH}"
   test_makedepend "${TEST_BIN_PATH}"
