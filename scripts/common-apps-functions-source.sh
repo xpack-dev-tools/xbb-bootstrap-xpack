@@ -2858,6 +2858,8 @@ function build_bison()
       export CXXFLAGS
       export LDFLAGS
 
+      export M4=gm4
+
       if [ ! -f "config.status" ]
       then
         (
