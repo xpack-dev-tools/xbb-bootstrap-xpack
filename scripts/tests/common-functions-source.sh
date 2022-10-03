@@ -91,6 +91,7 @@ function update_image()
   elif [[ ${image_name} == *suse* ]]
   then
     run_verbose zypper -q --no-gpg-checks in -y git-core curl tar gzip lsb-release binutils findutils util-linux
+    run_verbose zypper -q --no-gpg-checks in -y diffutils
     run_verbose zypper -q --no-gpg-checks in -y gcc-c++ glibc-devel libstdc++6
   elif [[ ${image_name} == *manjaro* ]]
   then
