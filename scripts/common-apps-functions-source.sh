@@ -2895,8 +2895,9 @@ function build_bison()
 
           config_options+=("--disable-nls")
 
-          # DO NOT USE, on macOS the LC_RPATH looses GCC references.
-          # config_options+=("--enable-relocatable") # HB
+          # Usually not recommended, but here it is needed to generate
+          # a relocatable yacc script.
+          config_options+=("--enable-relocatable") # HB
 
           run_verbose bash ${DEBUG} "${SOURCES_FOLDER_PATH}/${bison_src_folder_name}/configure" \
             "${config_options[@]}"
