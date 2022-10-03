@@ -17,6 +17,9 @@
 
 # -----------------------------------------------------------------------------
 
+# TEST_BIN_PATH - folder with the tested binaries
+# TESTS_FOLDER_PATH - temporary folder where individual tests are performed
+
 function run_tests()
 {
   echo
