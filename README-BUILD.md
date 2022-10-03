@@ -123,7 +123,7 @@ file.
 The builds currently run on 5 dedicated machines (Intel GNU/Linux,
 Arm 32 GNU/Linux, Arm 64 GNU/Linux, Intel macOS and Arm macOS.
 
-### Build the Intel GNU/Linux and Windows binaries
+### Build the Intel GNU/Linux
 
 The current platform for GNU/Linux and Windows production builds is a
 Debian 11, running on an AMD 5600G PC with 16 GB of RAM
@@ -177,28 +177,28 @@ network connection or a computer entering sleep.
 ```sh
 screen -S xbb-bootstrap
 
-sudo rm -rf ~/Work/xbb-bootstrap-*-*
+sudo rm -rf ~/Work/xbb-bootstrap-[0-9]*
 bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --linux64
 ```
 
 or, for development builds:
 
 ```sh
-sudo rm -rf ~/Work/xbb-bootstrap-*-*
+sudo rm -rf ~/Work/xbb-bootstrap-[0-9]*
 bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --without-html --disable-tests --linux64
 ```
 
 To detach from the session, use `Ctrl-a` `Ctrl-d`; to reattach use
 `screen -r xbb-bootstrap`; to kill the session use `Ctrl-a` `Ctrl-k` and confirm.
 
-About 20 minutes later, the output of the build script is a set of 4
-archives and their SHA signatures, created in the `deploy` folder:
+About 50 minutes later, the output of the build script is an
+archive and the SHA signature, created in the `deploy` folder:
 
 ```console
-$ ls -l ~/Work/xbb-bootstrap-*-*/deploy
-total 13248
--rw-rw-rw- 1 ilg ilg 3601358 Jun 10 13:45 xpack-xbb-bootstrap-4.0.0-linux-x64.tar.gz
--rw-rw-rw- 1 ilg ilg     107 Jun 10 13:45 xpack-xbb-bootstrap-4.0.0-linux-x64.tar.gz.sha
+$ ls -l ~/Work/xbb-bootstrap-[0-9]*/deploy
+total 114108
+-rw-rw-rw- 1 ilg ilg 116839844 Oct  3 17:11 xpack-xbb-bootstrap-4.0-linux-x64.tar.gz
+-rw-rw-rw- 1 ilg ilg       107 Oct  3 17:11 xpack-xbb-bootstrap-4.0-linux-x64.tar.gz.sha
 ```
 
 ### Build the Arm GNU/Linux binaries
@@ -246,14 +246,14 @@ network connection or a computer entering sleep.
 ```sh
 screen -S xbb-bootstrap
 
-sudo rm -rf ~/Work/xbb-bootstrap-*-*
+sudo rm -rf ~/Work/xbb-bootstrap-[0-9]*
 bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --arm64 --arm32
 ```
 
 or, for development builds:
 
 ```sh
-sudo rm -rf ~/Work/xbb-bootstrap-*-*
+sudo rm -rf ~/Work/xbb-bootstrap-[0-9]*
 bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --without-html --disable-tests --arm64 --arm32
 ```
 
@@ -264,13 +264,21 @@ About 50 minutes later, the output of the build script is a set of 2
 archives and their SHA signatures, created in the `deploy` folder:
 
 ```console
-$ ls -l ~/Work/xbb-bootstrap-*-*/deploy
-total 7120
--rw-rw-rw- 1 ilg ilg 3632743 Mar 26 15:25 xpack-xbb-bootstrap-4.0.0-linux-arm64.tar.gz
--rw-rw-rw- 1 ilg ilg     109 Mar 26 15:25 xpack-xbb-bootstrap-4.0.0-linux-arm64.tar.gz.sha
--rw-rw-rw- 1 ilg ilg 3646739 Mar 26 15:50 xpack-xbb-bootstrap-4.0.0-linux-arm.tar.gz
--rw-rw-rw- 1 ilg ilg     107 Mar 26 15:50 xpack-xbb-bootstrap-4.0.0-linux-arm.tar.gz.sha
+$ ls -l ~/Work/xbb-bootstrap-[0-9]*/deploy
+total 110732
+-rw-rw-rw- 1 ilg ilg 113382502 Oct  3 16:33 xpack-xbb-bootstrap-4.0-linux-arm64.tar.gz
+-rw-rw-rw- 1 ilg ilg       109 Oct  3 16:33 xpack-xbb-bootstrap-4.0-linux-arm64.tar.gz.sha
 ```
+
+and
+
+```console
+$ ls -l ~/Work/xbb-bootstrap-[0-9]*/deploy
+total 105580
+-rw-rw-rw- 1 ilg ilg 108106534 Oct  3 17:05 xpack-xbb-bootstrap-4.0-linux-arm.tar.gz
+-rw-rw-rw- 1 ilg ilg       107 Oct  3 17:05 xpack-xbb-bootstrap-4.0-linux-arm.tar.gz.sha
+```
+
 
 ### Build the macOS binaries
 
@@ -291,7 +299,7 @@ To build the latest macOS version:
 ```sh
 screen -S xbb-bootstrap
 
-rm -rf ~/Work/xbb-bootstrap-*-*
+rm -rf ~/Work/xbb-bootstrap-[0-9]*
 caffeinate bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --macos
 ```
 
@@ -310,10 +318,19 @@ Several minutes later, the output of the build script is a compressed
 archive and its SHA signature, created in the `deploy` folder:
 
 ```console
-$ ls -l ~/Work/xbb-bootstrap-*-*/deploy
-total 5536
--rw-r--r--  1 ilg  staff  2828202 Jun 10 17:44 xpack-xbb-bootstrap-4.0.0-darwin-x64.tar.gz
--rw-r--r--  1 ilg  staff      108 Jun 10 17:44 xpack-xbb-bootstrap-4.0.0-darwin-x64.tar.gz.sha
+$ ls -l ~/Work/xbb-bootstrap-[0-9]*/deploy
+total 197256
+-rw-r--r--  1 ilg  staff  99068411 Oct  3 17:46 xpack-xbb-bootstrap-4.0-darwin-x64.tar.gz
+-rw-r--r--  1 ilg  staff       108 Oct  3 17:46 xpack-xbb-bootstrap-4.0-darwin-x64.tar.gz.sha
+```
+
+and
+
+```console
+$ ls -l ~/Work/xbb-bootstrap-[0-9]*/deploy
+total 198408
+-rw-r--r--  1 ilg  staff  96533865 Oct  3 17:06 xpack-xbb-bootstrap-4.0-darwin-arm64.tar.gz
+-rw-r--r--  1 ilg  staff       110 Oct  3 17:06 xpack-xbb-bootstrap-4.0-darwin-arm64.tar.gz.sha
 ```
 
 ## Subsequent runs
@@ -358,7 +375,7 @@ will remove the more specific folders.
 For production builds it is recommended to **completely remove the build folder**:
 
 ```sh
-rm -rf ~/Work/xbb-bootstrap-*-*
+rm -rf ~/Work/xbb-bootstrap-[0-9]*
 ```
 
 ### `--develop`
@@ -399,13 +416,7 @@ executables to check if all shared/dynamic libraries are correctly used.
 
 For a true test you need to unpack the archive in a temporary location
 (like `~/Downloads`) and then run the
-program from there. For example on macOS the output should
-look like:
-
-```console
-$ .../xpack-xbb-bootstrap-4.0.0/bin/xxx
-...
-```
+program from there.
 
 ## Installed folders
 
@@ -415,7 +426,410 @@ only the first two depth levels are shown):
 ```console
 $ tree -L 2 /Users/ilg/Library/xPacks/\@xpack-dev-tools/xbb-bootstrap/4.0.0/.content/
 /Users/ilg/Library/xPacks/\@xpack-dev-tools/xbb-bootstrap/4.0.0/.content/
-...
+├── README.md
+├── bin
+│   ├── 2to3-3.9
+│   ├── 7z
+│   ├── 7za
+│   ├── 7zr
+│   ├── [
+│   ├── aclocal
+│   ├── aclocal-1.16
+│   ├── asn1Coding
+│   ├── asn1Decoding
+│   ├── asn1Parser
+│   ├── autoconf
+│   ├── autogen
+│   ├── autoheader
+│   ├── autom4te
+│   ├── automake
+│   ├── automake-1.16
+│   ├── autoopts-config
+│   ├── autoreconf
+│   ├── autoscan
+│   ├── autoupdate
+│   ├── awk -> gawk
+│   ├── b2sum
+│   ├── base32
+│   ├── base64
+│   ├── basename
+│   ├── basenc
+│   ├── bash
+│   ├── bashbug
+│   ├── bison
+│   ├── bunzip2
+│   ├── bzcat
+│   ├── bzcmp -> bzdiff
+│   ├── bzdiff
+│   ├── bzegrep -> bzgrep
+│   ├── bzfgrep -> bzgrep
+│   ├── bzgrep
+│   ├── bzip2
+│   ├── bzip2recover
+│   ├── bzless -> bzmore
+│   ├── bzmore
+│   ├── c_rehash
+│   ├── captoinfo -> tic
+│   ├── cat
+│   ├── certtool
+│   ├── chcon
+│   ├── chgrp
+│   ├── chmod
+│   ├── chown
+│   ├── chroot
+│   ├── cksum
+│   ├── clear
+│   ├── cmp
+│   ├── columns
+│   ├── comm
+│   ├── corelist
+│   ├── cp
+│   ├── cpan
+│   ├── cpanm
+│   ├── csplit
+│   ├── curl
+│   ├── curl-config
+│   ├── cut
+│   ├── date
+│   ├── dd
+│   ├── df
+│   ├── diff
+│   ├── diff3
+│   ├── dir
+│   ├── dircolors
+│   ├── dirmngr
+│   ├── dirmngr-client
+│   ├── dirname
+│   ├── dos2unix
+│   ├── du
+│   ├── echo
+│   ├── ed2k-link -> rhash
+│   ├── edonr256-hash -> rhash
+│   ├── edonr512-hash -> rhash
+│   ├── enc2xs
+│   ├── encguess
+│   ├── env
+│   ├── envsubst
+│   ├── expand
+│   ├── expr
+│   ├── factor
+│   ├── false
+│   ├── flex
+│   ├── flex++ -> flex
+│   ├── fmt
+│   ├── fold
+│   ├── gawk
+│   ├── gawk-5.1.1
+│   ├── getdefs
+│   ├── gettext
+│   ├── gettext.sh
+│   ├── gm4 -> m4
+│   ├── gmake
+│   ├── gnutar -> tar
+│   ├── gnutls-cli
+│   ├── gnutls-cli-debug
+│   ├── gnutls-serv
+│   ├── gost12-256-hash -> rhash
+│   ├── gost12-512-hash -> rhash
+│   ├── gpg
+│   ├── gpg-agent
+│   ├── gpg-card
+│   ├── gpg-connect-agent
+│   ├── gpg-wks-client
+│   ├── gpg-wks-server
+│   ├── gpgconf
+│   ├── gpgparsemail
+│   ├── gpgscm
+│   ├── gpgsm
+│   ├── gpgsplit
+│   ├── gpgtar
+│   ├── gpgv
+│   ├── groups
+│   ├── gsed -> sed
+│   ├── guild
+│   ├── guile
+│   ├── guile-config
+│   ├── guile-snarf
+│   ├── guile-tools -> guild
+│   ├── h2ph
+│   ├── h2xs
+│   ├── has160-hash -> rhash
+│   ├── head
+│   ├── hostid
+│   ├── iconv
+│   ├── id
+│   ├── idle3.9
+│   ├── ifnames
+│   ├── info
+│   ├── infocmp
+│   ├── infotocap -> tic
+│   ├── install
+│   ├── install-info
+│   ├── instmodsh
+│   ├── join
+│   ├── json_pp
+│   ├── kbxutil
+│   ├── kill
+│   ├── libnetcfg
+│   ├── link
+│   ├── ln
+│   ├── logname
+│   ├── ls
+│   ├── lzcat -> xz
+│   ├── lzcmp -> xzdiff
+│   ├── lzdiff -> xzdiff
+│   ├── lzegrep -> xzgrep
+│   ├── lzfgrep -> xzgrep
+│   ├── lzgrep -> xzgrep
+│   ├── lzless -> xzless
+│   ├── lzma -> xz
+│   ├── lzmadec
+│   ├── lzmainfo
+│   ├── lzmore -> xzmore
+│   ├── m4
+│   ├── mac2unix -> dos2unix
+│   ├── magnet-link -> rhash
+│   ├── make -> gmake
+│   ├── makedepend
+│   ├── makeinfo -> texi2any
+│   ├── md5sum
+│   ├── mkdir
+│   ├── mkfifo
+│   ├── mknod
+│   ├── mktemp
+│   ├── mv
+│   ├── ncurses6-config
+│   ├── ngettext
+│   ├── nice
+│   ├── nl
+│   ├── nohup
+│   ├── nproc
+│   ├── numfmt
+│   ├── ocsptool
+│   ├── od
+│   ├── openssl
+│   ├── paste
+│   ├── patch
+│   ├── patchelf
+│   ├── pathchk
+│   ├── pdftexi2dvi
+│   ├── perl
+│   ├── perl5.34.0
+│   ├── perlbug
+│   ├── perldoc
+│   ├── perlivp
+│   ├── perlthanks
+│   ├── piconv
+│   ├── pinky
+│   ├── pkg-config
+│   ├── pkg-config-verbose
+│   ├── pl2pm
+│   ├── pod2html
+│   ├── pod2man
+│   ├── pod2texi
+│   ├── pod2text
+│   ├── pod2usage
+│   ├── podchecker
+│   ├── pr
+│   ├── printenv
+│   ├── printf
+│   ├── prove
+│   ├── psktool
+│   ├── ptar
+│   ├── ptardiff
+│   ├── ptargrep
+│   ├── ptx
+│   ├── pwd
+│   ├── pydoc3.9
+│   ├── python3 -> python3.9
+│   ├── python3.9
+│   ├── python3.9-config
+│   ├── re2c
+│   ├── re2go
+│   ├── readlink
+│   ├── realpath
+│   ├── reset -> tset
+│   ├── rhash
+│   ├── rm
+│   ├── rmdir
+│   ├── runcon
+│   ├── sdiff
+│   ├── sed
+│   ├── seq
+│   ├── sfv-hash -> rhash
+│   ├── sha1sum
+│   ├── sha224sum
+│   ├── sha256sum
+│   ├── sha384sum
+│   ├── sha512sum
+│   ├── shasum
+│   ├── shred
+│   ├── shuf
+│   ├── sleep
+│   ├── sort
+│   ├── splain
+│   ├── split
+│   ├── sqlite3
+│   ├── sqlite3_analyzer
+│   ├── srptool
+│   ├── stat
+│   ├── streamzip
+│   ├── stty
+│   ├── sum
+│   ├── sync
+│   ├── tabs
+│   ├── tac
+│   ├── tail
+│   ├── tar
+│   ├── tclsh8.6
+│   ├── tee
+│   ├── test
+│   ├── texi2any
+│   ├── texi2dvi
+│   ├── texi2pdf
+│   ├── texindex
+│   ├── tic
+│   ├── tiger-hash -> rhash
+│   ├── timeout
+│   ├── toe
+│   ├── touch
+│   ├── tput
+│   ├── tr
+│   ├── true
+│   ├── truncate
+│   ├── tset
+│   ├── tsort
+│   ├── tth-hash -> rhash
+│   ├── tty
+│   ├── uname
+│   ├── unexpand
+│   ├── uniq
+│   ├── unix2dos
+│   ├── unix2mac -> unix2dos
+│   ├── unlink
+│   ├── unlzma -> xz
+│   ├── unxz -> xz
+│   ├── uptime
+│   ├── users
+│   ├── vdir
+│   ├── watchgnupg
+│   ├── wc
+│   ├── wget
+│   ├── whirlpool-hash -> rhash
+│   ├── who
+│   ├── whoami
+│   ├── xml2-config
+│   ├── xml2ag
+│   ├── xmlcatalog
+│   ├── xmllint
+│   ├── xsubpp
+│   ├── xz
+│   ├── xzcat -> xz
+│   ├── xzcmp -> xzdiff
+│   ├── xzdec
+│   ├── xzdiff
+│   ├── xzegrep -> xzgrep
+│   ├── xzfgrep -> xzgrep
+│   ├── xzgrep
+│   ├── xzless
+│   ├── xzmore
+│   ├── yacc
+│   ├── yes
+│   └── zipdetails
+├── distro-info
+│   ├── CHANGELOG.md
+│   ├── licenses
+│   ├── patches
+│   └── scripts
+├── etc
+│   ├── profile.d
+│   ├── rhashrc
+│   └── wgetrc
+├── include
+│   └── python3.9
+├── lib
+│   ├── bash
+│   ├── libpython3.9.dylib
+│   ├── perl5
+│   ├── pkgconfig
+│   ├── python3.9
+│   ├── tcl8
+│   └── tcl8.6
+├── libexec
+│   ├── awk
+│   ├── dirmngr_ldap
+│   ├── gpg-check-pattern
+│   ├── gpg-pair-tool
+│   ├── gpg-preset-passphrase
+│   ├── gpg-protect-tool
+│   ├── gpg-wks-client
+│   ├── keyboxd
+│   ├── libassuan.0.dylib
+│   ├── libbz2.1.0.8.dylib
+│   ├── libcrypt.2.dylib
+│   ├── libcrypto.1.1.dylib
+│   ├── libcurl.4.dylib
+│   ├── libexpat.1.8.1.dylib
+│   ├── libexpat.1.dylib -> libexpat.1.8.1.dylib
+│   ├── libffi.8.dylib
+│   ├── libgc.1.dylib
+│   ├── libgcrypt.20.dylib
+│   ├── libgmp.10.dylib
+│   ├── libgnutls.30.dylib
+│   ├── libgpg-error.0.dylib
+│   ├── libguile-2.2.1.dylib
+│   ├── libhistory.8.1.dylib
+│   ├── libhistory.8.dylib -> libhistory.8.1.dylib
+│   ├── libhogweed.6.4.dylib
+│   ├── libhogweed.6.dylib -> libhogweed.6.4.dylib
+│   ├── libiconv.2.dylib
+│   ├── libksba.8.dylib
+│   ├── libltdl.7.dylib
+│   ├── liblzma.5.dylib
+│   ├── libmpfr.6.dylib
+│   ├── libncurses.6.dylib
+│   ├── libnettle.8.4.dylib
+│   ├── libnettle.8.dylib -> libnettle.8.4.dylib
+│   ├── libnpth.0.dylib
+│   ├── libopts.25.dylib
+│   ├── libpanel.6.dylib
+│   ├── libpython3.9.dylib
+│   ├── libreadline.8.1.dylib
+│   ├── libreadline.8.dylib -> libreadline.8.1.dylib
+│   ├── librhash.0.dylib
+│   ├── libsqlite3.0.dylib
+│   ├── libssl.1.1.dylib
+│   ├── libtasn1.6.dylib
+│   ├── libtcl8.6.dylib
+│   ├── libunistring.2.dylib
+│   ├── libxml2.2.dylib
+│   ├── libz.1.2.11.dylib
+│   ├── libz.1.dylib -> libz.1.2.11.dylib
+│   └── scdaemon
+├── sbin
+│   ├── addgnupghome
+│   └── applygnupgdefaults
+└── share
+    ├── aclocal
+    ├── aclocal-1.16
+    ├── autoconf
+    ├── autogen
+    ├── automake-1.16
+    ├── awk
+    ├── bison
+    ├── gettext
+    ├── gnupg
+    ├── gtk-doc
+    ├── guile
+    ├── locale
+    ├── pkgconfig
+    ├── re2c
+    ├── readline
+    ├── tabset
+    ├── texinfo
+    └── util-macros
+
+38 directories, 364 files
 ```
 
 No other files are installed in any system folders or other locations.

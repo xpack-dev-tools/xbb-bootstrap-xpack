@@ -318,7 +318,6 @@ watching this project.
 ## Update the README-BUILD listings and examples
 
 - check and possibly update the `ls -l` output
-- check and possibly update the output of the `--version` runs
 - check and possibly update the output of `tree -L 2`
 - commit changes
 
@@ -326,7 +325,6 @@ watching this project.
 
 - open the `package.json` file
 - check if the links in the `bin` property cover the actual binaries
-- if necessary, also check on Windows
 
 ## Update package.json binaries
 
