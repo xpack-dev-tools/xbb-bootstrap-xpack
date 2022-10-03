@@ -389,11 +389,61 @@ function build_versions()
         # build_meson "0.60.2"
       fi
 
+      echo
+      echo "Removing manuals, docs, info, html..."
       rm -rfv "${APP_PREFIX}/man" # bzip2
       rm -rfv "${APP_PREFIX}/share/doc"
       rm -rfv "${APP_PREFIX}/share/man"
       rm -rfv "${APP_PREFIX}/share/info"
       rm -rfv "${APP_PREFIX}/share/gtk-doc/html"
+
+      (
+        echo
+        echo "Patching perl scripts..."
+
+        set +e
+        cd "${APP_PREFIX}/bin"
+
+        for f in $(grep "#!${APP_PREFIX}/bin/perl" * | sed -e "s|:.*||")
+        do
+          run_verbose sed -i -e "s|#!${APP_PREFIX}/bin/perl|#! perl|" $f
+        done
+
+        for f in $(grep "eval 'exec ${APP_PREFIX}/bin/perl" * | sed -e "s|:.*||")
+        do
+          run_verbose sed -i -e "s|exec ${APP_PREFIX}/bin/perl|exec perl|" $f
+        done
+
+        for f in $(grep "#! /opt/xbb/bin/perl" * | sed -e "s|:.*||")
+        do
+          run_verbose sed -i -e "s|#! /opt/xbb/bin/perl|#! perl|" $f
+        done
+
+        for f in $(grep "#! ${HOME}/.local/xbb/bin/perl" * | sed -e "s|:.*||")
+        do
+          echo $f
+          run_verbose sed -i -e "s|#! ${HOME}/.local/xbb/bin/perl|#! perl|" $f
+        done
+      )
+
+      (
+        echo
+        echo "Patching python scripts..."
+
+        set +e
+        cd "${APP_PREFIX}/bin"
+
+        for f in $(grep "#!${APP_PREFIX}/bin/python3" * | sed -e "s|:.*||")
+        do
+          run_verbose sed -i -e "s|#!${APP_PREFIX}/bin/python3.*|#! python3|" $f
+        done
+      )
+      (
+        cd "${APP_PREFIX}/bin"
+        echo
+        echo "List remaining xbb references in /bin..."
+        grep -i 'xbb' * | grep -v 'Binary file'
+      )
     )
     # -------------------------------------------------------------------------
   else
