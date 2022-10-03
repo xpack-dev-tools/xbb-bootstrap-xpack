@@ -22,6 +22,7 @@ function run_tests()
   echo
   env | sort
 
+  # Removed, they use absolute paths.
   # test_autoconf "${TEST_BIN_PATH}"
   # test_autogen "${TEST_BIN_PATH}"
   # test_automake "${TEST_BIN_PATH}"
@@ -81,15 +82,18 @@ function update_image()
   then
     run_verbose apt-get -qq update
     run_verbose apt-get -qq install -y git-core curl tar gzip lsb-release binutils
-    run_verbose apt-get -qq install -y libc6-dev libstdc++6 # TODO: get rid of them
+    run_verbose apt-get -qq install -y g++
+    run_verbose apt-get -qq install -y libc6-dev libstdc++6
   elif [[ ${image_name} == *centos* ]] || [[ ${image_name} == *redhat* ]] || [[ ${image_name} == *fedora* ]]
   then
     run_verbose yum install -y -q git curl tar gzip redhat-lsb-core binutils
-    run_verbose yum install -y -q glibc-devel libstdc++-devel # TODO: get rid of them
+    run_verbose yum install -y -q g++
+    run_verbose yum install -y -q glibc-devel libstdc++-devel
   elif [[ ${image_name} == *suse* ]]
   then
     run_verbose zypper -q --no-gpg-checks in -y git-core curl tar gzip lsb-release binutils findutils util-linux
-    run_verbose zypper -q --no-gpg-checks in -y glibc-devel libstdc++6 # TODO: get rid of them
+    run_verbose zypper -q --no-gpg-checks in -y g++
+    run_verbose zypper -q --no-gpg-checks in -y glibc-devel libstdc++6
   elif [[ ${image_name} == *manjaro* ]]
   then
     # run_verbose pacman-mirrors -g
@@ -98,7 +102,8 @@ function update_image()
     # Update even if up to date (-yy) & upgrade (-u).
     # pacman -S -yy -u -q --noconfirm
     run_verbose pacman -S -q --noconfirm --noprogressbar git curl tar gzip lsb-release binutils
-    run_verbose pacman -S -q --noconfirm --noprogressbar gcc-libs # TODO: get rid of them
+    run_verbose pacman -S -q --noconfirm --noprogressbar g++
+    run_verbose pacman -S -q --noconfirm --noprogressbar gcc-libs
   elif [[ ${image_name} == *archlinux* ]]
   then
     run_verbose pacman -S -y -q --noconfirm
@@ -106,6 +111,7 @@ function update_image()
     # Update even if up to date (-yy) & upgrade (-u).
     # pacman -S -yy -u -q --noconfirm
     run_verbose pacman -S -q --noconfirm --noprogressbar git curl tar gzip lsb-release binutils
+    run_verbose pacman -S -q --noconfirm --noprogressbar g++
     run_verbose pacman -S -q --noconfirm --noprogressbar gcc-libs
   fi
 }
