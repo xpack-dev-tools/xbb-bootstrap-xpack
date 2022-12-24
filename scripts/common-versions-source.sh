@@ -7,27 +7,15 @@
 # for any purpose is hereby granted, under the terms of the MIT license.
 # -----------------------------------------------------------------------------
 
-# Helper script used in the xPack build scripts. As the name implies,
-# it should contain only functions and should be included with 'source'
-# by the build scripts (both native and container).
-
 # -----------------------------------------------------------------------------
 
-function build_versions()
+function application_build_versioned_components()
 {
-  # Don't use a comma since the regular expression
-  # that processes this string in the Makefile, silently fails and the
-  # bfdver.h file remains empty.
-  # BRANDING="${DISTRO_NAME} ${APP_NAME} ${TARGET_MACHINE}"
-
-  # TEST_PATH="${APP_PREFIX}"
-  # TEST_BIN_PATH="${TEST_PATH}/bin"
-
   # Install all binaries in the public arena.
   BINS_INSTALL_FOLDER_PATH="${APP_INSTALL_FOLDER_PATH}"
 
   # Keep them in sync with combo archive content.
-  if [[ "${RELEASE_VERSION}" =~ 4\.0 ]]
+  if [[ "${XBB_RELEASE_VERSION}" =~ 4\.0 ]]
   then
     (
       libtool_version="2.4.6"
@@ -35,16 +23,14 @@ function build_versions()
       # -----------------------------------------------------------------------
       # All compiled with the Linux/macOS native compiler, no Windows.
 
-      xbb_activate
-
-      if [ "${TARGET_PLATFORM}" == "darwin" ]
+      if [ "${XBB_HOST_PLATFORM}" == "darwin" ]
       then
         prepare_clang_env
       fi
 
       # -----------------------------------------------------------------------
 
-      if [ "${TARGET_PLATFORM}" == "darwin" ]
+      if [ "${XBB_HOST_PLATFORM}" == "darwin" ]
       then
         # Note: Makefile calls gcc explicitly.
         build_realpath "1.0.0"
@@ -54,20 +40,20 @@ function build_versions()
 
       # New zlib, used in most of the tools.
       # depends=('glibc')
-      build_zlib "1.2.11"
+      zlib_build "1.2.11"
 
-      build_bzip2 "1.0.8"
+      bzip2_build "1.0.8"
 
       # Libraries, required by gcc.
       # depends=('gcc-libs' 'sh')
-      build_gmp "6.2.1"
+      gmp_build "6.2.1"
       # depends=('gmp>=5.0')
-      build_mpfr "4.1.0"
+      mpfr_build "4.1.0"
       # depends=('mpfr')
-      build_mpc "1.2.1"
+      mpc_build "1.2.1"
 
       (
-        if [ "${TARGET_PLATFORM}" == "darwin" ] && [[ ${CC} =~ .*gcc.* ]]
+        if [ "${XBB_HOST_PLATFORM}" == "darwin" ] && [[ ${CC} =~ .*gcc.* ]]
         then
           # The GCC linker fails with an assert:
           # ld: Assertion failed: (_file->_atomsArrayCount == computedAtomCount && "more atoms allocated than expected"), function parse, file macho_relocatable_file.cpp, line 2061.
@@ -75,16 +61,16 @@ function build_versions()
         fi
 
         # depends=('gmp')
-        build_isl "0.24"
+        isl_build "0.24"
       )
 
       # -----------------------------------------------------------------------
 
       # Replacement for the old libcrypt.so.1.
-      build_libxcrypt "4.4.26"
+      libxcrypt_build "4.4.26"
 
       (
-        if [ "${TARGET_PLATFORM}" == "darwin" ] && [[ ${CC} =~ .*gcc.* ]]
+        if [ "${XBB_HOST_PLATFORM}" == "darwin" ] && [[ ${CC} =~ .*gcc.* ]]
         then
           # The GCC linker fails with an assert:
           # ld: Assertion failed: (_file->_atomsArrayCount == computedAtomCount && "more atoms allocated than expected"), function parse, file macho_relocatable_file.cpp, line 2061.
@@ -92,150 +78,150 @@ function build_versions()
         fi
 
         # depends=('perl')
-        build_openssl "1.1.1q" # "1.1.1l"
+        openssl_build "1.1.1q" # "1.1.1l"
       )
 
       # Libraries, required by gnutls.
       # depends=('glibc')
-      build_libtasn1 "4.18.0"
+      libtasn1_build "4.18.0"
 
       # Library, required by Python.
       # depends=('glibc')
-      build_expat "2.4.1"
+      expat_build "2.4.1"
 
       # depends=('glibc')
-      build_libffi "3.4.2"
+      libffi_build "3.4.2"
 
       # Library, required by libunistring, wget.
       # depends=()
       # Harmful for GCC 9.
-      build_libiconv "1.16"
+      libiconv_build "1.16"
 
-      build_libunistring "0.9.10"
+      libunistring_build "0.9.10"
 
       # Required by Python
-      build_mpdecimal "2.5.1"
+      mpdecimal_build "2.5.1"
 
       # Libary, required by tar.
       # depends=('sh')
-      build_xz "5.2.5"
+      xz_build "5.2.5"
 
       # Requires openssl.
       # depends=('glibc' 'gmp')
       # PATCH!
-      build_nettle "3.7.3"
+      nettle_build "3.7.3"
 
       # Required by bash, readline
-      NCURSES_DISABLE_WIDEC="y"
-      build_ncurses "6.2"
+      XBB_NCURSES_DISABLE_WIDEC="y"
+      ncurses_build "6.2"
 
       # depends=('glibc' 'ncurses' 'libncursesw.so')
-      build_readline "8.1"
+      readline_build "8.1"
 
-      build_sqlite "3390200"
+      sqlite_build "3390200"
 
-      build_libxml2 "2.10.2"
+      libxml2_build "2.10.2"
 
       # -----------------------------------------------------------------------
       # Tools
 
       # depends=('glibc' 'glib2 (internal)')
-      build_pkg_config "0.29.2"
+      pkg_config_build "0.29.2"
 
       # depends=('ca-certificates' 'krb5' 'libssh2' 'openssl' 'zlib' 'libpsl' 'libnghttp2')
-      build_curl "7.80.0"
+      curl_build "7.80.0"
 
       # tar with xz support.
       # depends=('glibc')
-      build_tar "1.34"
+      tar_build "1.34"
 
       (
         # Hmmm... Not standalone, it remembers xbb-gcc and other settings.
-        set_bins_install "${LIBS_INSTALL_FOLDER_PATH}"
-        tests_add set_bins_install "${LIBS_INSTALL_FOLDER_PATH}"
+        set_bins_install "${XBB_LIBRARIES_INSTALL_FOLDER_PATH}"
+        tests_add set_bins_install "${XBB_LIBRARIES_INSTALL_FOLDER_PATH}"
 
         # Required before guile.
         # TODO
-        build_libtool "${libtool_version}"
+        libtool_build "${libtool_version}"
       )
 
       # Required by guile.
-      build_gc "8.0.6"
+      gc_build "8.0.6"
 
       # depends=('glibc' 'glib2' 'libunistring' 'ncurses')
-      build_gettext "0.21"
+      gettext_build "0.21"
 
       (
         # Hmmm... It fails to start, it goes to a prompt no metter what.
-        set_bins_install "${LIBS_INSTALL_FOLDER_PATH}"
-        tests_add set_bins_install "${LIBS_INSTALL_FOLDER_PATH}"
+        set_bins_install "${XBB_LIBRARIES_INSTALL_FOLDER_PATH}"
+        tests_add set_bins_install "${XBB_LIBRARIES_INSTALL_FOLDER_PATH}"
 
         # depends=(gmp libltdl ncurses texinfo libunistring gc libffi)
         # 3.x is too new, autogen requires 2.x
-        build_guile "2.2.7"
+        guille_build "2.2.7"
       )
 
       # depends=('readline>=7.0' glibc ncurses)
       # "5.1" fails on amd64 with:
       # bash-5.1/bashline.c:65:10: fatal error: builtins/builtext.h: No such file or directory
-      build_bash "5.1.8"
+      bash_build "5.1.8"
 
       (
         # Hmmm... Not standalone, it remembers absolute paths.
-        set_bins_install "${LIBS_INSTALL_FOLDER_PATH}"
-        tests_add set_bins_install "${LIBS_INSTALL_FOLDER_PATH}"
+        set_bins_install "${XBB_LIBRARIES_INSTALL_FOLDER_PATH}"
+        tests_add set_bins_install "${XBB_LIBRARIES_INSTALL_FOLDER_PATH}"
 
         # Requires guile 2.x.
-        build_autogen "5.18.16"
+        autogen_build "5.18.16"
       )
 
       # After autogen, requires libopts.so.25.
       # depends=('glibc' 'libidn2' 'libtasn1' 'libunistring' 'nettle' 'p11-kit' 'readline' 'zlib')
-      build_gnutls "3.7.2"
+      gnutls_build "3.7.2"
 
       # -----------------------------------------------------------------------
       # GNU tools
 
       # "8.32" fails on aarch64 with:
       # coreutils-8.32/src/ls.c:3026:24: error: 'SYS_getdents' undeclared (first use in this function); did you mean 'SYS_getdents64'?
-      build_coreutils "9.0"
+      coreutils_build "9.0"
 
       # depends=('glibc')
       # PATCH!
       # "1.4.19" tests fail on amd64.
-      build_m4 "1.4.19"
+      m4_build "1.4.19"
 
       # depends=('glibc' 'mpfr')
-      build_gawk "5.1.1"
+      gawk_build "5.1.1"
 
       # depends ?
       build_sed "4.8"
 
       (
         # Hmmm... Not standalone, it remembers absolute paths.
-        set_bins_install "${LIBS_INSTALL_FOLDER_PATH}"
-        tests_add set_bins_install "${LIBS_INSTALL_FOLDER_PATH}"
+        set_bins_install "${XBB_LIBRARIES_INSTALL_FOLDER_PATH}"
+        tests_add set_bins_install "${XBB_LIBRARIES_INSTALL_FOLDER_PATH}"
 
         # depends=('sh' 'perl' 'awk' 'm4' 'texinfo')
-        build_autoconf "2.71"
+        autoconf_build "2.71"
         # depends=('sh' 'perl')
 
         # PATCH!
-        build_automake "1.16.5"
+        automake_build "1.16.5"
       )
 
       # depends=('glibc' 'attr')
-      build_patch "2.7.6"
+      patch_build "2.7.6"
 
       # depends=('libsigsegv')
-      build_diffutils "3.8"
+      diffutils_build "3.8"
 
       # depends=('glibc')
-      build_bison "3.8.2"
+      bison_build "3.8.2"
 
       # depends=('glibc' 'guile')
       # PATCH!
-      build_make "4.3"
+      make_build "4.3"
 
       # -----------------------------------------------------------------------
       # Third party tools
@@ -244,29 +230,29 @@ function build_versions()
       # "1.21.[12]" fails on macOS with
       # lib/malloc/dynarray-skeleton.c:195:13: error: expected identifier or '(' before numeric constant
       # 195 | __nonnull ((1))
-      build_wget "1.20.3"
+      wget_build "1.20.3"
 
       # Required to build PDF manuals.
       # depends=('coreutils')
-      build_texinfo "6.8"
+      texinfo_build "6.8"
 
       # depends ?
       # Warning: buggy!
       # "0.12" weird tag
-      build_patchelf "0.14.3"
+      patchelf_build "0.14.3"
 
       # depends=('glibc')
-      build_dos2unix "7.4.2"
+      dos2unix_build "7.4.2"
 
       # Most probably not needed.
       # macOS 10.13: 2.5.35
       # macOS 11.1: 2.6.4
       # Ubuntu 18: 2.6.4
-      if false # [ "${TARGET_PLATFORM}" == "darwin" ] && [ "${TARGET_ARCH}" == "arm64" ]
+      if false # [ "${XBB_HOST_PLATFORM}" == "darwin" ] && [ "${XBB_HOST_ARCH}" == "arm64" ]
       then
         : # Still problematic, fails to run
       else
-        build_flex "2.6.4"
+        flex_build "2.6.4"
       fi
 
       # macOS 10.1[03] uses 5.18.2.
@@ -276,20 +262,20 @@ function build_versions()
       #
       # depends=('gdbm' 'db' 'glibc')
       # old PATCH!
-      build_perl "5.34.0"
+      perl_build "5.34.0"
 
       # Give other a chance to use it.
       # However some (like Python) test for Tk too.
-      build_tcl "8.6.12"
+      tcl_build "8.6.12"
 
       # depends=('curl' 'libarchive' 'shared-mime-info' 'jsoncpp' 'rhash')
       # Already a binary xPack
-      # build_cmake "3.22.1"
+      # cmake_build "3.22.1"
 
       # Requires scons
       # depends=('python2')
       # Already a binary xPack
-      # build_ninja "1.10.2"
+      # ninja_build "1.10.2"
 
       # depends=('curl' 'expat>=2.0' 'perl-error' 'perl>=5.14.0' 'openssl' 'pcre2' 'grep' 'shadow')
       # Ubuntu 18: 2.17.1
@@ -297,17 +283,17 @@ function build_versions()
       # macOS 11.6: 2.30.1
       # Hopefully no longer needed, it is very heavy,
       # libexec/git-core takes 475 MB.
-      # build_git "2.34.1"
+      # git_build "2.34.1"
 
       # 17.04 is from a fork easier to build on macOS.
-      build_p7zip "17.04" # "16.02"
+      p7zip_build "17.04" # "16.02"
 
       # "1.4.[12]" fail on amd64 with
       # librhash/librhash.so.0: undefined reference to `aligned_alloc'
       # For Apple Silicon, use 1.4.3 or higher.
-      build_rhash "1.4.3" # "1.4.2"
+      rhash_build "1.4.3" # "1.4.2"
 
-      build_re2c "2.2"
+      re2c_build "2.2"
 
       # -----------------------------------------------------------------------
 
@@ -319,30 +305,30 @@ function build_versions()
       # -----------------------------------------------------------------------
 
       (
-        set_bins_install "${LIBS_INSTALL_FOLDER_PATH}"
-        tests_add set_bins_install "${LIBS_INSTALL_FOLDER_PATH}"
+        set_bins_install "${XBB_LIBRARIES_INSTALL_FOLDER_PATH}"
+        tests_add set_bins_install "${XBB_LIBRARIES_INSTALL_FOLDER_PATH}"
 
-        build_libgpg_error "1.42"
+        libgpg_error_build "1.42"
         # "1.9.3" Fails many tests on macOS
-        build_libgcrypt "1.9.4"
-        build_libassuan "2.5.5"
+        libgcrypt_build "1.9.4"
+        libassuan_build "2.5.5"
         # patched
-        build_libksba "1.6.0"
+        libksba_build "1.6.0"
 
-        build_npth "1.6"
+        npth_build "1.6"
       )
 
       # "2.3.1" fails on macOS 10.13, requires libgcrypt 1.9
       # "2.2.28" fails on amd64
-      build_gnupg  "2.3.3"
+      gnupg_build  "2.3.3"
 
       # -----------------------------------------------------------------------
 
       # makedepend is needed by openssl
-      build_xorg_util_macros "1.19.3"
+      xorg_util_macros_build "1.19.3"
       # PATCH!
-      build_xorg_xproto "7.0.31" # Needs a patch for aarch64.
-      build_makedepend "1.0.6"
+      xorg_xproto_build "7.0.31" # Needs a patch for aarch64.
+      makedepend_build "1.0.6"
 
       # -----------------------------------------------------------------------
 
@@ -365,11 +351,11 @@ function build_versions()
         # On Apple Silicon it fails, it is not worth the effort.
         # On Ubuntu 18 there is 2.7.17; not much difference with 2.7.18.
         # depends=('bzip2' 'gdbm' 'openssl' 'zlib' 'expat' 'sqlite' 'libffi')
-        # build_python2 "2.7.18"
+        # python2_build "2.7.18"
 
         # homebrew: gdbm, mpdecimal, openssl, readline, sqlite, xz; bzip2, expat, libffi, ncurses, unzip, zlib
         # arch: 'bzip2' 'expat' 'gdbm' 'libffi' 'libnsl' 'libxcrypt' 'openssl' 'zlib'
-        build_python3 "3.9.9"
+        python3_build "3.9.9"
 
         # The necessary bits to build these optional modules were not found:
         # _bz2                  _dbm                  _gdbm
@@ -380,38 +366,38 @@ function build_versions()
         # depends=('python3')
         # "4.1.0" fails on macOS 10.13
         # TODO
-        # build_scons "4.2.0"
+        # scons_build "4.2.0"
 
         # TODO
         # build_sphinx "4.3.0"
 
         # skipped, already available as an xPack
-        # build_meson "0.60.2"
+        # meson_build "0.60.2"
       fi
 
       echo
       echo "Removing manuals, docs, info, html..."
-      rm -rfv "${APP_PREFIX}/man" # bzip2
-      rm -rfv "${APP_PREFIX}/share/doc"
-      rm -rfv "${APP_PREFIX}/share/man"
-      rm -rfv "${APP_PREFIX}/share/info"
-      rm -rfv "${APP_PREFIX}/share/gtk-doc/html"
+      rm -rfv "${XBB_EXECUTABLES_INSTALL_FOLDER_PATH}/man" # bzip2
+      rm -rfv "${XBB_EXECUTABLES_INSTALL_FOLDER_PATH}/share/doc"
+      rm -rfv "${XBB_EXECUTABLES_INSTALL_FOLDER_PATH}/share/man"
+      rm -rfv "${XBB_EXECUTABLES_INSTALL_FOLDER_PATH}/share/info"
+      rm -rfv "${XBB_EXECUTABLES_INSTALL_FOLDER_PATH}/share/gtk-doc/html"
 
       (
         echo
         echo "Patching perl scripts..."
 
         set +e
-        cd "${APP_PREFIX}/bin"
+        cd "${XBB_EXECUTABLES_INSTALL_FOLDER_PATH}/bin"
 
-        for f in $(grep "#!${APP_PREFIX}/bin/perl" * | sed -e "s|:.*||")
+        for f in $(grep "#!${XBB_EXECUTABLES_INSTALL_FOLDER_PATH}/bin/perl" * | sed -e "s|:.*||")
         do
-          run_verbose sed -i -e "s|#!${APP_PREFIX}/bin/perl|#! perl|" $f
+          run_verbose sed -i -e "s|#!${XBB_EXECUTABLES_INSTALL_FOLDER_PATH}/bin/perl|#! perl|" $f
         done
 
-        for f in $(grep "eval 'exec ${APP_PREFIX}/bin/perl" * | sed -e "s|:.*||")
+        for f in $(grep "eval 'exec ${XBB_EXECUTABLES_INSTALL_FOLDER_PATH}/bin/perl" * | sed -e "s|:.*||")
         do
-          run_verbose sed -i -e "s|exec ${APP_PREFIX}/bin/perl|exec perl|" $f
+          run_verbose sed -i -e "s|exec ${XBB_EXECUTABLES_INSTALL_FOLDER_PATH}/bin/perl|exec perl|" $f
         done
 
         for f in $(grep "#! /opt/xbb/bin/perl" * | sed -e "s|:.*||")
@@ -431,15 +417,15 @@ function build_versions()
         echo "Patching python scripts..."
 
         set +e
-        cd "${APP_PREFIX}/bin"
+        cd "${XBB_EXECUTABLES_INSTALL_FOLDER_PATH}/bin"
 
-        for f in $(grep "#!${APP_PREFIX}/bin/python3" * | sed -e "s|:.*||")
+        for f in $(grep "#!${XBB_EXECUTABLES_INSTALL_FOLDER_PATH}/bin/python3" * | sed -e "s|:.*||")
         do
-          run_verbose sed -i -e "s|#!${APP_PREFIX}/bin/python3.*|#! python3|" $f
+          run_verbose sed -i -e "s|#!${XBB_EXECUTABLES_INSTALL_FOLDER_PATH}/bin/python3.*|#! python3|" $f
         done
       )
       (
-        cd "${APP_PREFIX}/bin"
+        cd "${XBB_EXECUTABLES_INSTALL_FOLDER_PATH}/bin"
         echo
         echo "List remaining xbb references in /bin..."
         grep -i 'xbb' * | grep -v 'Binary file'
@@ -447,7 +433,7 @@ function build_versions()
     )
     # -------------------------------------------------------------------------
   else
-    echo "Unsupported version ${RELEASE_VERSION}."
+    echo "Unsupported ${XBB_APPLICATION_LOWER_CASE_NAME} version ${XBB_RELEASE_VERSION}"
     exit 1
   fi
 }

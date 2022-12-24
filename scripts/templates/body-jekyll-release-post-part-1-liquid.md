@@ -1,13 +1,13 @@
 ---
-title:  xPack XBB Bootstrap v{{ RELEASE_VERSION }} released
+title:  xPack XBB Bootstrap v{{ XBB_RELEASE_VERSION }} released
 
 TODO: select one summary
 
-summary: "Version **{{ RELEASE_VERSION }}** is a maintenance release; it ..."
+summary: "Version **{{ XBB_RELEASE_VERSION }}** is a maintenance release; it ..."
 
-summary: "Version **{{ RELEASE_VERSION }}** is a new release; it ..."
+summary: "Version **{{ XBB_RELEASE_VERSION }}** is a new release; it ..."
 
-download_url: https://github.com/xpack-dev-tools/xbb-bootstrap-xpack/releases/tag/v{{ RELEASE_VERSION }}/
+download_url: https://github.com/xpack-dev-tools/xbb-bootstrap-xpack/releases/tag/v{{ XBB_RELEASE_VERSION }}/
 
 date:   {{ RELEASE_DATE }}
 
@@ -78,7 +78,7 @@ ls -l xpacks/.bin
 To install this specific version, use:
 
 ```sh
-xpm install @xpack-dev-tools/xbb-bootstrap@{{ RELEASE_VERSION }}
+xpm install @xpack-dev-tools/xbb-bootstrap@{{ XBB_RELEASE_VERSION }}
 ```
 
 For xPacks aware tools,
@@ -90,7 +90,7 @@ xpm install --global @xpack-dev-tools/xbb-bootstrap@latest
 
 ### Uninstall
 
-To remove the links from the current project:
+To remove the links created by xpm in the current project:
 
 ```sh
 cd my-project

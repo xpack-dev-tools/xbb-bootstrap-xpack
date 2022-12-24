@@ -7,32 +7,27 @@
 # for any purpose is hereby granted, under the terms of the MIT license.
 # -----------------------------------------------------------------------------
 
-# Application definitions used in the build scripts.
-# As the name implies, it should contain only definitions and should
-# be included with 'source' by the host and container scripts.
-
-# Warning: MUST NOT depend on $HOME or other environment variables.
-
 # -----------------------------------------------------------------------------
+# Application specific definitions. Included with source.
 
 # Used to display the application name.
-APP_NAME=${APP_NAME:-"XBB Bootstrap"}
+XBB_APPLICATION_NAME=${XBB_APPLICATION_NAME:-"XBB Bootstrap"}
 
 # Used as part of file/folder paths.
-APP_LC_NAME=${APP_LC_NAME:-"xbb-bootstrap"}
+XBB_APPLICATION_LOWER_CASE_NAME=${XBB_APPLICATION_LOWER_CASE_NAME:-"xbb-bootstrap"}
 
-DISTRO_NAME=${DISTRO_NAME:-"xPack"}
-DISTRO_LC_NAME=${DISTRO_LC_NAME:-"xpack"}
-DISTRO_TOP_FOLDER=${DISTRO_TOP_FOLDER:-"xPacks"}
+XBB_APPLICATION_DISTRO_NAME=${XBB_APPLICATION_DISTRO_NAME:-"xPack"}
+XBB_APPLICATION_DISTRO_LOWER_CASE_NAME=${XBB_APPLICATION_DISTRO_LOWER_CASE_NAME:-"xpack"}
+XBB_APPLICATION_DISTRO_TOP_FOLDER=${XBB_APPLICATION_DISTRO_TOP_FOLDER:-"xPacks"}
 
-APP_DESCRIPTION="${DISTRO_NAME} ${APP_NAME}"
+XBB_APPLICATION_DESCRIPTION="${XBB_APPLICATION_DISTRO_NAME} ${XBB_APPLICATION_NAME}"
 
 # -----------------------------------------------------------------------------
 
-GITHUB_ORG="${GITHUB_ORG:-"xpack-dev-tools"}"
-GITHUB_REPO="${GITHUB_REPO:-"${APP_LC_NAME}-xpack"}"
-GITHUB_PRE_RELEASES="${GITHUB_PRE_RELEASES:-"pre-releases"}"
+XBB_GITHUB_ORG="${XBB_GITHUB_ORG:-"xpack-dev-tools"}"
+XBB_GITHUB_REPO="${XBB_GITHUB_REPO:-"${XBB_APPLICATION_LOWER_CASE_NAME}-xpack"}"
+XBB_GITHUB_PRE_RELEASES="${XBB_GITHUB_PRE_RELEASES:-"pre-releases"}"
 
-NPM_PACKAGE="${NPM_PACKAGE:-"@xpack-dev-tools/${APP_LC_NAME}@next"}"
+XBB_NPM_PACKAGE="${XBB_NPM_PACKAGE:-"@xpack-dev-tools/${XBB_APPLICATION_LOWER_CASE_NAME}@next"}"
 
 # -----------------------------------------------------------------------------

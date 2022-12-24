@@ -20,63 +20,62 @@
 # TEST_BIN_PATH - folder with the tested binaries
 # TESTS_FOLDER_PATH - temporary folder where individual tests are performed
 
-function run_tests()
+function tests_run_all()
 {
-  echo
-  env | sort
+  local test_bin_path="$1"
 
   # Removed, they use absolute paths.
-  # test_autoconf "${TEST_BIN_PATH}"
-  # test_autogen "${TEST_BIN_PATH}"
-  # test_automake "${TEST_BIN_PATH}"
+  # autoconf_test "${TEST_BIN_PATH}"
+  # autogen_test "${TEST_BIN_PATH}"
+  # automake_test "${TEST_BIN_PATH}"
 
-  test_bash "${TEST_BIN_PATH}"
-  test_bison "${TEST_BIN_PATH}"
-  test_coreutils "${TEST_BIN_PATH}"
-  test_curl "${TEST_BIN_PATH}"
-  test_diffutils "${TEST_BIN_PATH}"
-  test_dos2unix "${TEST_BIN_PATH}"
+  bash_test "${TEST_BIN_PATH}"
+  bison_test "${TEST_BIN_PATH}"
+  coreutils_test "${TEST_BIN_PATH}"
+  curl_test "${TEST_BIN_PATH}"
+  diffutils_test "${TEST_BIN_PATH}"
+  dos2unix_test "${TEST_BIN_PATH}"
 
-  if false # [ "${TARGET_PLATFORM}" == "darwin" ] && [ "${TARGET_ARCH}" == "arm64" ]
+  if false # [ "${XBB_HOST_PLATFORM}" == "darwin" ] && [ "${XBB_HOST_ARCH}" == "arm64" ]
   then
     :
   else
-    : # test_flex "${TEST_BIN_PATH}"
+    : # flex_test "${TEST_BIN_PATH}"
   fi
 
-  test_gawk "${TEST_BIN_PATH}"
-  test_gettext "${TEST_BIN_PATH}"
-  test_gnutls "${TEST_BIN_PATH}"
-  test_gpg "${TEST_BIN_PATH}"
+  gawk_test "${TEST_BIN_PATH}"
+  gettext_test "${TEST_BIN_PATH}"
+  gnutls_test "${TEST_BIN_PATH}"
+  gpg_test "${TEST_BIN_PATH}"
 
   # Removed, on Linux it fails with --version
-  # test_guile "${TEST_BIN_PATH}"
+  # guile_test "${TEST_BIN_PATH}"
 
-  test_m4 "${TEST_BIN_PATH}"
-  test_make "${TEST_BIN_PATH}"
-  test_makedepend "${TEST_BIN_PATH}"
-  test_p7zip "${TEST_BIN_PATH}"
-  test_patch "${TEST_BIN_PATH}"
-  test_patchelf "${TEST_BIN_PATH}"
-  test_perl "${TEST_BIN_PATH}"
-  test_pkg_config "${TEST_BIN_PATH}"
-  test_python3 "${TEST_BIN_PATH}"
+  m4_test "${TEST_BIN_PATH}"
+  make_test "${TEST_BIN_PATH}"
+  makedepend_test "${TEST_BIN_PATH}"
+  p7zip_test "${TEST_BIN_PATH}"
+  patch_test "${TEST_BIN_PATH}"
+  patchelf_test "${TEST_BIN_PATH}"
+  perl_test "${TEST_BIN_PATH}"
+  pkg_config_test "${TEST_BIN_PATH}"
+  python3_test "${TEST_BIN_PATH}"
 
-  if [ "${TARGET_PLATFORM}" == "darwin" ]
+  if [ "${XBB_HOST_PLATFORM}" == "darwin" ]
   then
     test_realpath "${TEST_BIN_PATH}"
   fi
 
-  test_rhash "${TEST_BIN_PATH}"
-  test_re2c "${TEST_BIN_PATH}"
+  rhash_test "${TEST_BIN_PATH}"
+  re2c_test "${TEST_BIN_PATH}"
   test_sed "${TEST_BIN_PATH}"
-  test_tar "${TEST_BIN_PATH}"
-  test_tcl "${TEST_BIN_PATH}"
-  test_texinfo "${TEST_BIN_PATH}"
-  test_wget "${TEST_BIN_PATH}"
+  tar_test "${TEST_BIN_PATH}"
+  tcl_test "${TEST_BIN_PATH}"
+  texinfo_test "${TEST_BIN_PATH}"
+  wget_test "${TEST_BIN_PATH}"
 }
 
-function update_image()
+function tests_update_system()
 {
   local image_name="$1"
 
@@ -91,7 +90,7 @@ function update_image()
     run_verbose apt-get -qq install -y g++ libc6-dev libstdc++6
   elif [[ ${image_name} == *centos* ]] || [[ ${image_name} == *redhat* ]] || [[ ${image_name} == *fedora* ]]
   then
-    run_verbose yum install -y -q git curl tar gzip redhat-lsb-core binutils
+    run_verbose yum install -y -q git curl tar gzip redhat-lsb-core binutils which
     run_verbose yum install -y -q diffutils
     run_verbose yum install -y -q gcc-c++ glibc-devel libstdc++-devel
   elif [[ ${image_name} == *suse* ]]
@@ -106,7 +105,7 @@ function update_image()
 
     # Update even if up to date (-yy) & upgrade (-u).
     # pacman -S -yy -u -q --noconfirm
-    run_verbose pacman -S -q --noconfirm --noprogressbar git curl tar gzip lsb-release binutils
+    run_verbose pacman -S -q --noconfirm --noprogressbar git curl tar gzip lsb-release binutils which
     run_verbose pacman -S -q --noconfirm --noprogressbar diffutils # For cmp
     run_verbose pacman -S -q --noconfirm --noprogressbar gcc gcc-libs
   elif [[ ${image_name} == *archlinux* ]]
@@ -115,7 +114,7 @@ function update_image()
 
     # Update even if up to date (-yy) & upgrade (-u).
     # pacman -S -yy -u -q --noconfirm
-    run_verbose pacman -S -q --noconfirm --noprogressbar git curl tar gzip lsb-release binutils
+    run_verbose pacman -S -q --noconfirm --noprogressbar git curl tar gzip lsb-release binutils which
     run_verbose pacman -S -q --noconfirm --noprogressbar diffutils # For cmp
     run_verbose pacman -S -q --noconfirm --noprogressbar gcc gcc-libs
   fi

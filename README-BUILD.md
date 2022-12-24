@@ -59,10 +59,10 @@ Git repo.
 To download them, issue the following commands:
 
 ```sh
-rm -rf ${HOME}/Work/xbb-bootstrap-xpack.git; \
+rm -rf ~/Work/xbb-bootstrap-xpack.git && \
 git clone https://github.com/xpack-dev-tools/xbb-bootstrap-xpack.git \
-  ${HOME}/Work/xbb-bootstrap-xpack.git; \
-git -C ${HOME}/Work/xbb-bootstrap-xpack.git submodule update --init --recursive
+  ~/Work/xbb-bootstrap-xpack.git && \
+git -C ~/Work/xbb-bootstrap-xpack.git submodule update --init --recursive
 ```
 
 > Note: the repository uses submodules; for a successful build it is
@@ -71,12 +71,13 @@ git -C ${HOME}/Work/xbb-bootstrap-xpack.git submodule update --init --recursive
 For development purposes, clone the `xpack-develop` branch:
 
 ```sh
-rm -rf ${HOME}/Work/xbb-bootstrap-xpack.git; \
+rm -rf ~/Work/xbb-bootstrap-xpack.git && \
+mkdir -p ~/Work && \
 git clone \
   --branch xpack-develop \
   https://github.com/xpack-dev-tools/xbb-bootstrap-xpack.git \
-  ${HOME}/Work/xbb-bootstrap-xpack.git; \
-git -C ${HOME}/Work/xbb-bootstrap-xpack.git submodule update --init --recursive
+  ~/Work/xbb-bootstrap-xpack.git && \
+git -C ~/Work/xbb-bootstrap-xpack.git submodule update --init --recursive
 ```
 
 ## The `Work` folder
@@ -121,7 +122,7 @@ file.
 ## Build
 
 The builds currently run on 5 dedicated machines (Intel GNU/Linux,
-Arm 32 GNU/Linux, Arm 64 GNU/Linux, Intel macOS and Arm macOS.
+Arm 32 GNU/Linux, Arm 64 GNU/Linux, Intel macOS and Apple Silicon macOS).
 
 ### Build the Intel GNU/Linux
 
@@ -143,7 +144,7 @@ Before running a build for the first time, it is recommended to preload the
 docker images.
 
 ```sh
-bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh preload-images
+bash ~/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh preload-images
 ```
 
 The result should look similar to:
@@ -178,14 +179,14 @@ network connection or a computer entering sleep.
 screen -S xbb-bootstrap
 
 sudo rm -rf ~/Work/xbb-bootstrap-[0-9]*
-bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --linux64
+bash ~/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --linux64
 ```
 
 or, for development builds:
 
 ```sh
 sudo rm -rf ~/Work/xbb-bootstrap-[0-9]*
-bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --without-html --disable-tests --linux64
+bash ~/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --without-html --disable-tests --linux64
 ```
 
 To detach from the session, use `Ctrl-a` `Ctrl-d`; to reattach use
@@ -226,7 +227,7 @@ Before running a build for the first time, it is recommended to preload the
 docker images.
 
 ```sh
-bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh preload-images
+bash ~/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh preload-images
 ```
 
 The result should look similar to:
@@ -247,14 +248,14 @@ network connection or a computer entering sleep.
 screen -S xbb-bootstrap
 
 sudo rm -rf ~/Work/xbb-bootstrap-[0-9]*
-bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --arm64 --arm32
+bash ~/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --arm64 --arm32
 ```
 
 or, for development builds:
 
 ```sh
 sudo rm -rf ~/Work/xbb-bootstrap-[0-9]*
-bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --without-html --disable-tests --arm64 --arm32
+bash ~/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --without-html --disable-tests --arm64 --arm32
 ```
 
 To detach from the session, use `Ctrl-a` `Ctrl-d`; to reattach use
@@ -300,14 +301,14 @@ To build the latest macOS version:
 screen -S xbb-bootstrap
 
 rm -rf ~/Work/xbb-bootstrap-[0-9]*
-caffeinate bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --macos
+caffeinate bash ~/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --macos
 ```
 
 or, for development builds:
 
 ```sh
-rm -rf ~/Work/xbb-bootstrap-arm-*-*
-caffeinate bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --without-html --disable-tests --macos
+rm -rf ~/Work/xbb-bootstrap-arm-[0-9]*-*
+caffeinate bash ~/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --without-html --disable-tests --macos
 ```
 
 To detach from the session, use `Ctrl-a` `Ctrl-d`; to reattach use
@@ -354,19 +355,19 @@ On Arm, instead of `--all`, you can use any combination of:
 To remove most build temporary files, use:
 
 ```sh
-bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --all clean
+bash ~/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --all clean
 ```
 
 To also remove the library build temporary files, use:
 
 ```sh
-bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --all cleanlibs
+bash ~/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --all cleanlibs
 ```
 
 To remove all temporary files, use:
 
 ```sh
-bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --all cleanall
+bash ~/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --all cleanall
 ```
 
 Instead of `--all`, any combination of `--linux64`

@@ -19,12 +19,13 @@ Git repo.
 To download them on a new machine, clone the `xpack-develop` branch:
 
 ```sh
-rm -rf ${HOME}/Work/xbb-bootstrap-xpack.git; \
+rm -rf ~/Work/xbb-bootstrap-xpack.git && \
+mkdir -p ~/Work && \
 git clone \
   --branch xpack-develop \
   https://github.com/xpack-dev-tools/xbb-bootstrap-xpack.git \
-  ${HOME}/Work/xbb-bootstrap-xpack.git; \
-git -C ${HOME}/Work/xbb-bootstrap-xpack.git submodule update --init --recursive
+  ~/Work/xbb-bootstrap-xpack.git && \
+git -C ~/Work/xbb-bootstrap-xpack.git submodule update --init --recursive
 ```
 
 > Note: the repository uses submodules; for a successful build it is
@@ -35,13 +36,15 @@ git -C ${HOME}/Work/xbb-bootstrap-xpack.git submodule update --init --recursive
 In the `xpack-dev-tools/xbb-bootstrap-xpack` Git repo:
 
 - switch to the `xpack-develop` branch
+- pull new changes
 - if needed, merge the `xpack` branch
 
 No need to add a tag here, it'll be added when the release is created.
 
-### Update helper
+### Update helper & other dependencies
 
-With a git client, go to the helper repo and update to the latest master commit.
+Check the latest versions at <https://github.com/xpack-dev-tools/> and
+update the dependencies in `package.json`.
 
 ### Increase the version
 
@@ -65,8 +68,7 @@ but in the version specific release page.
 
 ### Update versions in `README` files
 
-- update version in `README-RELEASE.md`
-- update version in `README-BUILD.md`
+- update version in `README-MAINTAINER.md`
 - update version in `README.md`
 
 ### Update `CHANGELOG.md`
@@ -76,26 +78,24 @@ but in the version specific release page.
 - add a new entry like _* v4.0 prepared_
 - commit with a message like _prepare v4.0_
 
-Note: if you missed to update the `CHANGELOG.md` before starting the build,
-edit the file and rerun the build, it should take only a few minutes to
-recreate the archives with the correct file.
-
 ### Update the version specific code
 
-- open the `common-versions-source.sh` file
+- open the `scripts/versioning.sh` file
 - add a new `if` with the new version before the existing code
 
 ## Build
 
+The builds currently run on 5 dedicated machines (Intel GNU/Linux,
+Arm 32 GNU/Linux, Arm 64 GNU/Linux, Intel macOS and Apple Silicon macOS).
+
 ### Development run the build scripts
 
-Before the real build, run a test build on the development machine (`wksi`)
-or the production machines (`xbbma`, `xbbmi`):
+Before the real build, run test builds on all platforms.
 
 ```sh
 rm -rf ~/Work/xbb-bootstrap-[0-9]*
 
-caffeinate bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --macos
+caffeinate bash ~/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --macos
 ```
 
 Similarly on the Intel Linux (`xbbli`):
@@ -103,19 +103,19 @@ Similarly on the Intel Linux (`xbbli`):
 ```sh
 sudo rm -rf ~/Work/xbb-bootstrap-[0-9]*
 
-bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --linux64
+bash ~/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --linux64
 ```
 
 ... on the Arm Linux 64-bit (`xbbla64`):
 
 ```sh
-bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --arm64
+bash ~/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --arm64
 ```
 
 ... and on the Arm Linux 32-bit (`xbbla32`):
 
 ```sh
-bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --arm32
+bash ~/Work/xbb-bootstrap-xpack.git/scripts/helper/build.sh --develop --arm32
 ```
 
 Work on the scripts until all platforms pass the build.
@@ -155,7 +155,14 @@ screen -S ga
 # Ctrl-a Ctrl-d
 ```
 
-Check that both the project Git and the submodule are pushed to GitHub.
+For `xbbli` & `xbbla64` start two runners:
+
+```sh
+~/actions-runners/xpack-dev-tools/1/run.sh &
+~/actions-runners/xpack-dev-tools/2/run.sh &
+```
+
+Check that the project is pushed to GitHub.
 
 To trigger the GitHub Actions build, use the xPack action:
 
@@ -168,11 +175,11 @@ To trigger the GitHub Actions build, use the xPack action:
 This is equivalent to:
 
 ```sh
-bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/trigger-workflow-build.sh --machine xbbli
-bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/trigger-workflow-build.sh --machine xbbla64
-bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/trigger-workflow-build.sh --machine xbbla32
-bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/trigger-workflow-build.sh --machine xbbmi
-bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/trigger-workflow-build.sh --machine xbbma
+bash ~/Work/xbb-bootstrap-xpack.git/xpacks/xpack-dev-tools-xbb-helper/github-actions/trigger-workflow-build.sh --machine xbbli
+bash ~/Work/xbb-bootstrap-xpack.git/xpacks/xpack-dev-tools-xbb-helper/github-actions/trigger-workflow-build.sh --machine xbbla64
+bash ~/Work/xbb-bootstrap-xpack.git/xpacks/xpack-dev-tools-xbb-helper/github-actions/trigger-workflow-build.sh --machine xbbla32
+bash ~/Work/xbb-bootstrap-xpack.git/xpacks/xpack-dev-tools-xbb-helper/github-actions/trigger-workflow-build.sh --machine xbbmi
+bash ~/Work/xbb-bootstrap-xpack.git/xpacks/xpack-dev-tools-xbb-helper/github-actions/trigger-workflow-build.sh --machine xbbma
 ```
 
 These scripts require the `GITHUB_API_DISPATCH_TOKEN` variable to be present
@@ -226,9 +233,9 @@ To trigger the GitHub Actions tests, use the xPack actions:
 These are equivalent to:
 
 ```sh
-bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/tests/trigger-workflow-test-prime.sh
-bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/tests/trigger-workflow-test-docker-linux-intel.sh
-bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/tests/trigger-workflow-test-docker-linux-arm.sh
+bash ~/Work/xbb-bootstrap-xpack.git/xpacks/xpack-dev-tools-xbb-helper/github-actions/trigger-workflow-test-prime.sh
+bash ~/Work/xbb-bootstrap-xpack.git/xpacks/xpack-dev-tools-xbb-helper/github-actions/trigger-workflow-test-docker-linux-intel.sh
+bash ~/Work/xbb-bootstrap-xpack.git/xpacks/xpack-dev-tools-xbb-helper/github-actions/trigger-workflow-test-docker-linux-arm.sh
 ```
 
 These scripts require the `GITHUB_API_DISPATCH_TOKEN` variable to be present
@@ -251,7 +258,7 @@ To trigger the Travis test, use the xPack action:
 This is equivalent to:
 
 ```sh
-bash ${HOME}/Work/xbb-bootstrap-xpack.git/scripts/helper/tests/trigger-travis-macos.sh
+bash ~/Work/xbb-bootstrap-xpack.git/xpacks/xpack-dev-tools-xbb-helper/github-actions/trigger-travis-macos.sh
 ```
 
 This script requires the `TRAVIS_COM_TOKEN` variable to be present
@@ -315,7 +322,7 @@ If any, refer to closed
 Note: at this moment the system should send a notification to all clients
 watching this project.
 
-## Update the README-BUILD listings and examples
+## Update the READMEs listings and examples
 
 - check and possibly update the `ls -l` output
 - check and possibly update the output of `tree -L 2`
@@ -382,7 +389,7 @@ When the release is considered stable, promote it as `latest`:
 
 In case the previous version is not functional and needs to be unpublished:
 
-- `npm unpublish @xpack-dev-tools/xbb-bootstrap@4.0.X`
+- `npm unpublish @xpack-dev-tools/xbb-bootstrap@4.0.0`
 
 ## Update the Web
 
@@ -409,7 +416,7 @@ In case the previous version is not functional and needs to be unpublished:
   [release](https://xpack.github.io/xbb-bootstrap/releases/)
 - click the **Tweet** button
 
-## Remove pre-release binaries
+## Remove the pre-release binaries
 
 - go to <https://github.com/xpack-dev-tools/pre-releases/releases/tag/test/>
 - remove the test binaries
@@ -419,5 +426,5 @@ In case the previous version is not functional and needs to be unpublished:
 Run the xPack action `trigger-workflow-deep-clean`, this
 will remove the build folders on all supported platforms.
 
-The tests results are available from the
+The results are available from the
 [Actions](https://github.com/xpack-dev-tools/xbb-bootstrap-xpack/actions/) page.
